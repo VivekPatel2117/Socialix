@@ -15,7 +15,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { supabase } from "../supabase/supabase.ts";
 import StringAvatar from "../components/StringAvatar.tsx";
 import Spinner from "../components/Spinner.tsx";
-
+import Error from "./Error.tsx";
 const GET_USER_PROFILE = gql`
   query GetUser {
     GetBasicUserDetails{
@@ -107,7 +107,7 @@ const CreatePost: React.FC = () => {
             .upload(filePath, fileData);
     
           if (uploadError) {
-            throw new Error(`File upload failed: ${uploadError.message}`);
+            console.log(`File upload failed: ${uploadError.message}`);
           }
     
           // Get the public URL for the uploaded file
@@ -116,7 +116,7 @@ const CreatePost: React.FC = () => {
             .getPublicUrl(filePath);
     
           if (!publicUrlData) {
-            throw new Error("Failed to retrieve public URL for the uploaded file.");
+            console.log("Failed to retrieve public URL for the uploaded file.");
           }
           uploadFile({variables:{file:publicUrlData.publicUrl,caption:text,postTitle:postTitle,category:category,taggedUserIds:userIds.map(user => user.id)}})
     }else if(text && category){
@@ -132,6 +132,9 @@ const CreatePost: React.FC = () => {
   if(uploadError){
     console.error(uploadError);
     setIsSpinner(false);
+    return (
+      <Error/>
+    )
   }
   if(uploadedData){
     if(uploadedData.uploadFile.isUploaded){

@@ -8,6 +8,7 @@ import Profile from './pages/Profile';
 import Logout from './pages/Logout';
 import SignUp from './components/sign-in/SignUp';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ToastContainer } from 'react-toastify';
 const AppContent: React.FC = () => {
   const location = useLocation(); // Access the current route
 
@@ -29,6 +30,7 @@ const AppContent: React.FC = () => {
         <Route path='/userProfile/:id' element={(<Profile/>)} />
         <Route path='/logout' element={(<Logout/>)} />
       </Routes>
+      <ToastContainer />
     </div>
   );
 };

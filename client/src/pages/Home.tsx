@@ -3,7 +3,7 @@ import Container from '@mui/material/Container';
 import MainContent from '../components/MainContent';
 import { gql, useLazyQuery } from '@apollo/client';
 import SkeletonLoader from '../components/SkeletonLoader';
-
+import Error from './Error';
 const Home: React.FC = () => {
    const [offset, setOffset] = useState(0);
     const limit = 10;
@@ -75,7 +75,9 @@ const Home: React.FC = () => {
   }
 
   if (error) {
-    return <>Error: {error.message}</>;
+    return (
+      <Error/>
+    )
   }
 
   if (data) {

@@ -4,7 +4,8 @@ import { Skeleton, Box, Grid, Typography } from "@mui/material";
 import { useParams } from "react-router-dom";
 import StringAvatar from "../components/StringAvatar";
 import MainContent from "../components/MainContent";
-
+import { toast } from "react-toastify";
+import Error from "./Error";
 // GraphQL Query
 const GET_USER_PROFILE = gql`
   query GetUserProfile($limit: Int, $offset: Int) {
@@ -283,8 +284,10 @@ const Profile: React.FC = () => {
       </Box>
     );
   if (error) {
-    console.error("GraphQL Error:", error);
-    return <div className="text-center text-red-500">Failed to load data.</div>;
+    toast.error("Error fetching user details");
+    return (
+      <Error />
+    )
   }
 
   if (profileData) {

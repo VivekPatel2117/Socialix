@@ -14,6 +14,7 @@ import Typography from "@mui/material/Typography";
 import StringAvatar from "./StringAvatar";
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import { toast } from "react-toastify";
 const Navbar: React.FC = () => {
   const handleSearchedUser = (id: string) => {
     navigate(`/userProfile/${id}`);
@@ -84,9 +85,7 @@ const Navbar: React.FC = () => {
           </Typography>
         )}
         {error && (
-          <Typography variant="body2" sx={{ color: "red", padding: 2 }}>
-            Error: {error.message}
-          </Typography>
+          toast.error("Error fetching user details")
         )}
         {data?.searchUsersByLetters?.map((user: any) => (
           <ListItem onClick={()=>handleSearchedUser(user.id)} key={user.id}>
