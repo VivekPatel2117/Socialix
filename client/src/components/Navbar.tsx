@@ -5,6 +5,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
 import { gql, useMutation, useQuery} from "@apollo/client";
 import { debounce } from "lodash";
+import SearchIcon from '@mui/icons-material/Search';
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
@@ -17,9 +18,12 @@ import Tooltip from '@mui/material/Tooltip';
 import { toast } from "react-toastify";
 const Navbar: React.FC = () => {
   const handleSearchedUser = (id: string) => {
-    navigate(`/userProfile/${id}`);
-    document.getElementById("search")?.setAttribute("value", "");
+    const searchInput = document.getElementById("search") as HTMLInputElement | null;
+    if (searchInput) {
+      searchInput.value = "";
+    }
     setIsSearched(false);
+    navigate(`/userProfile/${id}`);
   }
   const query = gql`
       mutation GetUsersByLetter($letter: String!) {
@@ -52,8 +56,79 @@ const Navbar: React.FC = () => {
         navigate(route)
     }
     const {data:UserData,refetch } = useQuery(getUser);
+    const [isMobile, setMobile] = useState<boolean>(false);
+    useEffect(() => {
+      const handleResize = () => {
+        if (window.innerWidth <= 1024) {
+          setMobile(true);
+        } else {
+          setMobile(false);
+        }
+      };
+  
+      handleResize();
+      window.addEventListener("resize", handleResize);
+  
+      return () => {
+        window.removeEventListener("resize", handleResize);
+      };
+    }, []);
   return (
-    <div className="shadow h-24 w-full p-2 items-center flex gap-24 ">
+    <>
+  {isMobile ? (
+    <div className="shadow h-24 w-screen p-2 items-center flex  ">
+        <SearchIcon sx={{fontSize:"32px"}}/>
+      <div className="search-bar w-full flex justify-center ml-4 mr-4">
+        <input
+          className="w-full h-12 rounded bg-slate-300 border-none outline-none p-4"
+          placeholder="Search users..."
+          type="search"
+          name="search"
+          id="search"
+          onChange={(e) => {
+            setIsSearched(false);
+            const value = e.target.value;
+            if (value.trim() !== "") {
+              handleSearch(value);
+              setIsSearched(true);
+            }
+          }}
+        />
+        {isSearched && (
+        <div className="cursor-pointer absolute bg-slate-300 w-11/12 rounded-md top-16">
+        <List>
+        {loading && (
+          <Typography variant="body2" sx={{ padding: 2 }}>
+            Loading users...
+          </Typography>
+        )}
+        {error && (
+          toast.error("Error fetching user details")
+        )}
+        {data?.searchUsersByLetters?.map((user: any) => (
+          <ListItem onClick={()=>handleSearchedUser(user.id)} key={user.id}>
+            <ListItemAvatar>
+              {user.profile ? (
+                <Avatar alt={user.username} src={user.profile} />
+              ) : (
+                <div className="h-10 w-10 rounded-full overflow-hidden">
+                  <StringAvatar username={user.username} full_name=""/>
+                </div>
+              )}
+            </ListItemAvatar>
+            <ListItemText
+              primary={user.username}
+              secondary="User profile"
+            />
+          </ListItem>
+        ))}
+      </List>
+        </div>
+        )}
+      </div>  
+    </div>
+  ): (
+    <div className="shadow h-24 w-full p-2  justify-center items-center flex gap-24 ">
       <div onClick={()=>handleNaviagtion("/home")} className="branding hover:cursor-pointer flex items-center gap-2">
         <div className="rounded-box h-16 w-16 ">
          <div className="rounded-full object-cover"><ConnectWithoutContactIcon sx={{fontSize:"64px"}}/></div>
@@ -149,6 +224,8 @@ const Navbar: React.FC = () => {
         </div>
       </div>
     </div>
+  )}
+    </>
   );
 };
 

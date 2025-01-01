@@ -87,7 +87,7 @@ const Home: React.FC = () => {
         <Container
           maxWidth="lg"
           component="main"
-          sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}
+          sx={{ display: 'flex', flexDirection: 'column', my: 5, gap: 4 }}
         >
           <MainContent posts={posts} loading={loading}
                   setOffset={setOffset} hasMore={posts.length === limit} />

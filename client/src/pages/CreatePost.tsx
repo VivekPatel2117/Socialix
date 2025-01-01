@@ -166,7 +166,7 @@ const CreatePost: React.FC = () => {
   return (
     <div className="flex justify-center items-center mt-10">
       <Paper elevation={3}>
-        <div className="w-50vw h-full mx-auto p-4 rounded-md">
+        <div className="w-screen lg:w-50vw h-full mx-auto p-4 rounded-md">
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-4">
              <div className="w-10 h-10 rounded-full overflow-hidden">

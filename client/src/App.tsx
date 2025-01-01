@@ -9,17 +9,36 @@ import Logout from './pages/Logout';
 import SignUp from './components/sign-in/SignUp';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ToastContainer } from 'react-toastify';
+import { useEffect, useState } from 'react';
+import MoblieNav from './components/MoblieNav';
+import './App.css';
 const AppContent: React.FC = () => {
   const location = useLocation(); // Access the current route
 
   // Define routes where the Navbar should not appear
   const hideNavbarRoutes = ['/signup', "/"];
+ const [isMobile, setMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setMobile(true);
+      } else {
+        setMobile(false);
+      }
+    };
 
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   return (
-    <div>
+    <div className='grid h-screen w-screen overflow-hidden'>
       {/* Conditionally render Navbar */}
       {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
-      
+      <div className='app-scroll-div grid h-full w-screen overflow-y-scroll'>
       <Routes>
         <Route path="/home" element={(<Home />)} />
         <Route path="/create" element={(<CreatePost />)} />
@@ -31,6 +50,8 @@ const AppContent: React.FC = () => {
         <Route path='/logout' element={(<Logout/>)} />
       </Routes>
       <ToastContainer />
+      </div>
+      {isMobile && <MoblieNav />}
     </div>
   );
 };

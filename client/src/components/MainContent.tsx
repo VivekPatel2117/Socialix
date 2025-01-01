@@ -7,7 +7,7 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 const fallbackImage = 'https://via.placeholder.com/800x450?text=No+Image+Available';
 interface PostListProps {
   posts: any[];
@@ -16,6 +16,23 @@ interface PostListProps {
   hasMore: boolean;
 }
 const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMore }) => {
+  const [isMobile, setMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setMobile(true);
+      } else {
+        setMobile(false);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   const StyledCard = styled(Card)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
@@ -103,7 +120,7 @@ const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMo
   }, [hasMore, loading, setOffset]);
 
   return (
-    <Box sx={{ display: 'grid',width:'60vw', gap: 3 }}>
+    <Box sx={{ display: 'grid',width:isMobile ? '90vw':'60vw', gap: 3 }}>
       {posts.map((post, index) => {
         const isLastPost = index === posts.length - 2;
       return (
@@ -135,7 +152,7 @@ const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMo
           <Author tagedUsers={post.tagedUsers || []} postDate={post.created_at} />
           {post.postedBy.username && (
           <Typography sx={{display:'flex', alignItems:"center", gap:"1vh",padding:"1vw"}} variant="caption">
-            Posted By: <Avatar sx={{height:'4vh',width:'4vh'}} alt={post.postedBy.username} src={post.postedBy.profile} /> {post.postedBy.username}
+            Posted By: <Avatar sx={{height:isMobile ? '3vh':'4vh',width:isMobile ? '3vh':'4vh'}} alt={post.postedBy.username} src={post.postedBy.profile} /> {post.postedBy.username}
           </Typography>
           )}
         </StyledCard>
