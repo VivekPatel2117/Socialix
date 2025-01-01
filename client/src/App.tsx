@@ -51,7 +51,7 @@ const AppContent: React.FC = () => {
       </Routes>
       <ToastContainer />
       </div>
-      {isMobile && <MoblieNav />}
+      {isMobile && !hideNavbarRoutes.includes(location.pathname)  && <MoblieNav />}
     </div>
   );
 };
