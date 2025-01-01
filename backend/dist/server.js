@@ -48,7 +48,9 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     // Log the URL where the Apollo Server is running
     console.log(`🚀  Server ready at: ${url}`);
     // Enable CORS to allow cross-origin requests
-    app.use((0, cors_1.default)());
+    app.use((0, cors_1.default)({
+        origin: '*', // Only allow your frontend domain
+    }));
 });
 // Start the server
 startServer();
