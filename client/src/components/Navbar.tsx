@@ -12,6 +12,8 @@ import ListItemText from "@mui/material/ListItemText";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import StringAvatar from "./StringAvatar";
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 const Navbar: React.FC = () => {
   const handleSearchedUser = (id: string) => {
     navigate(`/userProfile/${id}`);
@@ -112,10 +114,20 @@ const Navbar: React.FC = () => {
           <ul className="flex justify-evenly gap-6 w-4/12">
             <li>
               <Link to={"/create"}>
-                <AddCircleOutlineIcon />
+              <Tooltip title="Create Post">
+                  <IconButton>
+                    <AddCircleOutlineIcon />
+                  </IconButton>
+                </Tooltip>
               </Link>
             </li>
-            <li onClick={()=>handleNaviagtion("/logout")}><LogoutIcon/></li>
+            <li onClick={()=>handleNaviagtion("/logout")}>
+            <Tooltip title="Logout">
+                <IconButton>
+                    <LogoutIcon/>
+                </IconButton>
+              </Tooltip>
+              </li>
           </ul>
         </div>
         <div  className="rounded-box w-40 flex justify-end ">
