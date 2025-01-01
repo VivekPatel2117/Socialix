@@ -6,7 +6,7 @@ services:
     startCommand: "serve -s build"
     routes:
       - path: /
-        destination: /index.html
+        destination: /dist/index.html
       - path: /signup
         destination: /index.html
       - path: /login
