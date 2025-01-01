@@ -11,10 +11,8 @@ if (rootElement) {
   const root = createRoot(rootElement);
 
   root.render(
-    <React.StrictMode>
         <ApolloProvider client={client}>
           <App />
         </ApolloProvider>
-    </React.StrictMode>
   );
 }
