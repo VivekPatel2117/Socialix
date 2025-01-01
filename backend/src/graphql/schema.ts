@@ -2,7 +2,7 @@ import { gql } from "graphql-tag";
 import { supabase } from "../supabaseClient";
 import jwt from "jsonwebtoken";
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import bcrypt from "bcrypt";
+import bcrypt from 'bcryptjs';
 
 async function hashPassword(plainPassword: string) {
   try {

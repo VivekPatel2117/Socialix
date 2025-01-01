@@ -17,12 +17,12 @@ const graphql_tag_1 = require("graphql-tag");
 const supabaseClient_1 = require("../supabaseClient");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const jwt_decode_1 = require("jwt-decode");
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 function hashPassword(plainPassword) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const saltRounds = 10;
-            const hashedPassword = yield bcrypt_1.default.hash(plainPassword, saltRounds);
+            const hashedPassword = yield bcryptjs_1.default.hash(plainPassword, saltRounds);
             console.log('Hashed Password:', hashedPassword);
             return hashedPassword;
         }
@@ -445,7 +445,7 @@ exports.resolvers = {
                     return { error: "User not found" };
                 }
                 if (data) {
-                    const isMatch = yield bcrypt_1.default.compare(password, data.password);
+                    const isMatch = yield bcryptjs_1.default.compare(password, data.password);
                     if (!isMatch) {
                         console.error("loginUser - Invalid password");
                         return { error: "Invalid password" };
