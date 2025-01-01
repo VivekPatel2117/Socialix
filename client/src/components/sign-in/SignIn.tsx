@@ -17,6 +17,7 @@ import { gql, useMutation } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../Spinner";
 import { GoogleLogin } from '@react-oauth/google';
+import { toast } from "react-toastify";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -162,6 +163,8 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     const token = data.loginUser.token;
         localStorage.setItem('token',token)
        navigate('/home')
+  }else{
+    toast.error("Invalid Credentials");
   }
   return (
     <AppTheme {...props}>

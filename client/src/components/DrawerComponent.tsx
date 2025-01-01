@@ -44,7 +44,6 @@ const DrawerComponent: React.FC<DrawerProps> = ({ open, toggleDrawer, addUser, u
   const handleSearch = debounce((value: string) => {
     searchUsers({ variables: { letter: value } });
   }, 500);
-  const navigate = useNavigate();
   const DrawerList = (
     <Box sx={{ width: 250 }} role="presentation">
       <List>
@@ -62,7 +61,7 @@ const DrawerComponent: React.FC<DrawerProps> = ({ open, toggleDrawer, addUser, u
         />
       </List>
       <Divider />
-      <List>
+      <List sx={{ maxHeight:"50vh", overflowY: "auto" }}>
         {loading && (
           <Typography variant="body2" sx={{ padding: 2 }}>
             Loading users...
@@ -94,7 +93,7 @@ const DrawerComponent: React.FC<DrawerProps> = ({ open, toggleDrawer, addUser, u
             Tagged users
           </Typography>
       {userIds.length > 0 && (
-      <List>
+      <List sx={{ maxHeight:"50vh", overflowY: "auto" }}>
            {userIds.map((user: any) => (
           <ListItem sx={{backgroundColor:"#80808042"}} onClick={()=>removeUser(user.id)} key={user.id}>
             <ListItemAvatar sx={{height:"2.5rem", width:"2.5rem"}}>

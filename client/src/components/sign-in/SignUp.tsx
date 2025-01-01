@@ -138,7 +138,6 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 placeholder="your@email.com"
                 autoComplete="email"
                 required
-                autoFocus
                 fullWidth
                 variant="outlined"
               />
@@ -152,7 +151,6 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 id="password"
                 autoComplete="current-password"
                 required
-                autoFocus
                 fullWidth
                 variant="outlined"
               />
