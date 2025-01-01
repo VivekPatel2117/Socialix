@@ -16,7 +16,7 @@ const AppContent: React.FC = () => {
   const location = useLocation(); // Access the current route
 
   // Define routes where the Navbar should not appear
-  const hideNavbarRoutes = ['/signup', "/"];
+  const hideNavbarRoutes = ["/signup","/"];
  const [isMobile, setMobile] = useState<boolean>(false);
   useEffect(() => {
     const handleResize = () => {
@@ -44,7 +44,7 @@ const AppContent: React.FC = () => {
         <Route path="/create" element={(<CreatePost />)} />
         <Route path="*" element={(<NotFound />)} />
         <Route index path="/" element={(<Signin />)} />
-        <Route index path="/signup" element={(<SignUp />)} />
+        <Route path="/signup" element={(<SignUp />)} />
         <Route path='/profile' element={(<Profile/>)} />
         <Route path='/userProfile/:id' element={(<Profile/>)} />
         <Route path='/logout' element={(<Logout/>)} />
