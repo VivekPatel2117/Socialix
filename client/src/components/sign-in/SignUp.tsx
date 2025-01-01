@@ -95,7 +95,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             variant="h4"
             sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
           >
-            Sign in
+            Sign up
           </Typography>
           <Box
             component="form"
@@ -149,7 +149,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
               />
             </FormControl>
             <Button type="submit" fullWidth variant="contained">
-              Sign in
+              Sign up
             </Button>
           </Box>
         </Card>

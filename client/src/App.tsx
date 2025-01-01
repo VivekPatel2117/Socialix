@@ -40,11 +40,11 @@ const AppContent: React.FC = () => {
       {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
       <div className='app-scroll-div grid h-full w-screen overflow-y-scroll'>
       <Routes>
-        <Route path="/home" element={(<Home />)} />
+        <Route path='/home' element={(<Home />)} />
         <Route path="/create" element={(<CreatePost />)} />
-        <Route path="*" element={(<NotFound />)} />
-        <Route index path="/" element={(<Signin />)} />
-        <Route path="/signup" element={(<SignUp />)} />
+        <Route path='*' element={(<NotFound />)} />
+        <Route index path='/' element={(<Signin />)} />
+        <Route path='/signup' element={(<SignUp />)} />
         <Route path='/profile' element={(<Profile/>)} />
         <Route path='/userProfile/:id' element={(<Profile/>)} />
         <Route path='/logout' element={(<Logout/>)} />
