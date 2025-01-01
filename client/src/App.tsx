@@ -60,7 +60,7 @@ const App: React.FC = () => {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
   return (
     <GoogleOAuthProvider clientId={clientId}>
-    <Router basename='/'>
+    <Router>
       <AppContent />
     </Router>
     </GoogleOAuthProvider>

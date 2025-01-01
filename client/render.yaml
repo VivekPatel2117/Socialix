@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: socialix-ui
+    env: static
+    buildCommand: "npm install && npm run build"
+    startCommand: "serve -s build"
+    routes:
+      - path: /
+        destination: /index.html
+      - path: /signup
+        destination: /index.html
+      - path: /login
+        destination: /index.html
+      - path: /*
+        destination: /index.html
