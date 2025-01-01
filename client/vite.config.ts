@@ -13,15 +13,6 @@ export default defineConfig({
     target: 'esnext', // Specify the target environment (esnext for modern browsers)
     minify: 'esbuild', // Minify the production build (can switch to 'terser' for better optimization)
     chunkSizeWarningLimit: 1024, // Set chunk size limit (default is 500 KB)
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            return 'vendor'; // Bundle dependencies separately from the app code
-          }
-        },
-      },
-    },
   },
   plugins: [react()],
 })
