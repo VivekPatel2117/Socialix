@@ -10,8 +10,6 @@ import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { gql, useMutation } from "@apollo/client";
 import { debounce } from "lodash";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import StringAvatar from "./StringAvatar";
 
 type User = {
@@ -39,7 +37,6 @@ const DrawerComponent: React.FC<DrawerProps> = ({ open, toggleDrawer, addUser, u
     }
   `;
   const [searchUsers, { loading, error, data }] = useMutation(query);
-  const [letters, setLetters] = useState<string>("");
 
   const handleSearch = debounce((value: string) => {
     searchUsers({ variables: { letter: value } });
@@ -50,7 +47,6 @@ const DrawerComponent: React.FC<DrawerProps> = ({ open, toggleDrawer, addUser, u
         <input
           onChange={(e) => {
             const value = e.target.value;
-            setLetters(value);
             handleSearch(value);
           }}
           className="outline-none p-4"

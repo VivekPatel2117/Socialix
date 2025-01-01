@@ -102,7 +102,7 @@ const CreatePost: React.FC = () => {
       setIsSpinner(true);
       const filePath = Date.now() + fileData.name;
           // Upload to Supabase storage
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from('test-app')
             .upload(filePath, fileData);
     
