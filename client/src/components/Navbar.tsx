@@ -1,6 +1,5 @@
 import React,{useEffect, useState} from "react";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { Link, useNavigate } from "react-router-dom";
 import LogoutIcon from '@mui/icons-material/Logout';
 import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
@@ -49,7 +48,7 @@ const Navbar: React.FC = () => {
     const handleNaviagtion = (route : string):void =>{
         navigate(route)
     }
-    const {data:UserData, error:UserDataError,refetch } = useQuery(getUser);
+    const {data:UserData,refetch } = useQuery(getUser);
   return (
     <div className="shadow h-24 w-full p-2 items-center flex gap-24 ">
       <div onClick={()=>handleNaviagtion("/home")} className="branding hover:cursor-pointer flex items-center gap-2">
