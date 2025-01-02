@@ -103,6 +103,8 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
       if(responseToken){
         localStorage.setItem('token',responseToken)
         navigate('/home')
+      }else{
+        toast.error("You need to signup first");
       }
     }
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
