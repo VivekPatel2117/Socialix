@@ -14,6 +14,7 @@ import AppTheme from "./theme/AppTheme";
 import { gql, useMutation } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../Spinner";
+import { toast } from "react-toastify";
 export default function SignUp(props: { disableCustomTheme?: boolean }) {
   const query = gql`
     mutation Singup($email: String!, $password: String!, $username: String!) {
@@ -84,7 +85,11 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
     )
   }
   if(data){
-     navigate("/");
+    if(data.createUser.isCreated){
+      navigate("/");
+    }else{
+      toast.error("Error occured username or email already in use")
+    }
   }
   return (
     <AppTheme {...props}>

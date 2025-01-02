@@ -63,11 +63,6 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 const query = gql`
     mutation login($email: String!, $password: String!) {
       loginUser(email: $email, password: $password) {
-        id
-        followers
-        following
-        username
-        profile
         token
       }
     }
@@ -118,10 +113,6 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     const inputdata = new FormData(event.currentTarget);
     const email = inputdata.get("email");
     const password = inputdata.get("password");
-    console.log({
-      email: inputdata.get("email"),
-      password: inputdata.get("password"),
-    });
     loginFunc({variables: {email,password}})
   };
 
@@ -160,11 +151,13 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     <p className="text-red-700 text-center">Some internal Error occured please try again...!</p>
   }
   if(data){
-    const token = data.loginUser.token;
-        localStorage.setItem('token',token)
-       navigate('/home')
-  }else{
-    toast.error("Invalid Credentials");
+    if(data.loginUser.token){
+      const token = data.loginUser.token;
+          localStorage.setItem('token',token)
+         navigate('/home')
+    }else{
+      toast.error("Invalid credentials");
+    }
   }
   return (
     <AppTheme {...props}>
