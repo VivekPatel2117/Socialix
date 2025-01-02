@@ -2,15 +2,15 @@ import { gql } from "graphql-tag";
 import { supabase } from "../supabaseClient";
 import jwt from "jsonwebtoken";
 import { jwtDecode, JwtPayload } from "jwt-decode";
-import bcrypt from 'bcryptjs';
-
+import bcrypt from "bcryptjs";
+import sendOtp from "../mailer/sendOtp";
 async function hashPassword(plainPassword: string) {
   try {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
     return hashedPassword;
   } catch (error) {
-    console.error('Error hashing password:', error);
+    console.error("Error hashing password:", error);
   }
 }
 // Define type definitions
@@ -70,6 +70,10 @@ type Post {
   category: String
   postTitle: String
 }
+  type OTP_Response {
+    message: String
+    isSent: Boolean  
+  }
 
 type Query {
   GetBasicUserDetails: BasicUser
@@ -79,6 +83,9 @@ type Query {
 }
 
 type Mutation {
+  verifyOtp(otp: String!): CreateResponse
+  resetPassword(newPassword: String!): CreateResponse
+  SendOtp(email: String!): OTP_Response
   UnFollowUser(userId: ID!): FollowResponse
   FollowUser(userId: ID!): FollowResponse
   createUser(
@@ -104,8 +111,8 @@ type Mutation {
 export const resolvers = {
   Query: {
     GetBasicUserDetails: async (
-      // This resolver is used to fetch the basic user details (id, username, profile) 
-     // for the logged-in user based on the context's user ID.
+      // This resolver is used to fetch the basic user details (id, username, profile)
+      // for the logged-in user based on the context's user ID.
       _: any,
       { id }: { id: String },
       context: any
@@ -116,22 +123,28 @@ export const resolvers = {
           .select("id, username, profile")
           .eq("id", context.id)
           .single();
-    
+
         if (error) {
-          console.error(`Error occurred while getting basic user details: ${error}`);
+          console.error(
+            `Error occurred while getting basic user details: ${error}`
+          );
           return [];
         }
-    
+
         return { id: data.id, username: data.username, profile: data.profile };
       } catch (err) {
         console.error("Error in GetBasicUserDetails query:", err);
         return [];
       }
     },
-    
+
     GetUserProfile: async (
       _: any,
-      { id, limit = 10, offset = 0 }: { id: String, limit: number, offset: number },
+      {
+        id,
+        limit = 10,
+        offset = 0,
+      }: { id: String; limit: number; offset: number },
       context: any
     ) => {
       try {
@@ -140,12 +153,14 @@ export const resolvers = {
           .select("id, profile, username, followers, following")
           .eq("id", context.id)
           .single();
-    
+
         if (error) {
-          console.error(`GetUserProfile - Failed to get user data: ${error.message}`);
+          console.error(
+            `GetUserProfile - Failed to get user data: ${error.message}`
+          );
           return [];
         }
-    
+
         const userData = {
           id: data.id,
           profile: data.profile,
@@ -153,7 +168,7 @@ export const resolvers = {
           followers: data.followers,
           following: data.following,
         };
-    
+
         const { data: postData, error: postError } = await supabase
           .from("post")
           .select(
@@ -162,12 +177,14 @@ export const resolvers = {
           .eq("createdBy", context.id)
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
-    
+
         if (postError) {
-          console.error(`GetUserProfile - Failed to get posts: ${postError.message}`);
+          console.error(
+            `GetUserProfile - Failed to get posts: ${postError.message}`
+          );
           return [];
         }
-    
+
         const enrichedPosts = [];
         for (const post of postData) {
           const { data: creatorData, error: creatorError } = await supabase
@@ -175,18 +192,20 @@ export const resolvers = {
             .select("id, username, profile")
             .eq("id", post.createdBy)
             .single();
-    
+
           if (creatorError) {
-            console.error(`GetUserProfile - Failed to get creator details: ${creatorError.message}`);
+            console.error(
+              `GetUserProfile - Failed to get creator details: ${creatorError.message}`
+            );
             continue;
           }
-    
+
           const postedBy = {
             id: creatorData.id,
             username: creatorData.username,
             profile: creatorData.profile,
           };
-    
+
           if (!post.tagedUserId) {
             enrichedPosts.push({
               ...post,
@@ -195,44 +214,54 @@ export const resolvers = {
             });
             continue;
           }
-    
+
           const tagedUserIds = post.tagedUserId.split(",");
-    
-          const { data: taggedUsersData, error: taggedUserError } = await supabase
-            .from("socialix")
-            .select("id, username, profile")
-            .in("id", tagedUserIds);
-    
+
+          const { data: taggedUsersData, error: taggedUserError } =
+            await supabase
+              .from("socialix")
+              .select("id, username, profile")
+              .in("id", tagedUserIds);
+
           if (taggedUserError) {
-            console.error(`GetUserProfile - Error fetching tagged user data: ${taggedUserError.message}`);
+            console.error(
+              `GetUserProfile - Error fetching tagged user data: ${taggedUserError.message}`
+            );
             continue;
           }
-    
+
           const tagedUserDetails = taggedUsersData.map((user) => ({
             tagedUserId: user.id,
             tagedUserName: user.username,
           }));
-    
+
           enrichedPosts.push({
             ...post,
             postedBy,
             tagedUsers: tagedUserDetails,
           });
         }
-    
+
         return {
           user: userData,
           postData: enrichedPosts,
         };
       } catch (err) {
-        console.error("GetUserProfile - Error occurred while fetching user profile:", err);
+        console.error(
+          "GetUserProfile - Error occurred while fetching user profile:",
+          err
+        );
         return { err };
       }
     },
 
     GetUserProfileById: async (
       _: any,
-      { id, limit = 10, offset = 0 }: { id: String; limit: number; offset: number },
+      {
+        id,
+        limit = 10,
+        offset = 0,
+      }: { id: String; limit: number; offset: number },
       context: any
     ) => {
       try {
@@ -242,17 +271,19 @@ export const resolvers = {
           .select("id, profile, username, followers, following")
           .eq("id", id)
           .single();
-    
+
         if (data) {
           const { data: contextUser } = await supabase
             .from("socialix")
             .select("following")
             .eq("id", context.id)
             .single();
-    
-          const following = contextUser?.following ? contextUser?.following.split(",") : [];
+
+          const following = contextUser?.following
+            ? contextUser?.following.split(",")
+            : [];
           isFollowedByLoggedUser = following.includes(String(id));
-    
+
           const userData = {
             id: data.id,
             profile: data.profile,
@@ -260,7 +291,7 @@ export const resolvers = {
             followers: data.followers,
             following: data.following,
           };
-    
+
           const { data: postData, error: postError } = await supabase
             .from("post")
             .select(
@@ -269,12 +300,15 @@ export const resolvers = {
             .eq("createdBy", id)
             .order("created_at", { ascending: false })
             .range(offset, offset + limit - 1);
-    
+
           if (postError) {
-            console.error("GetUserProfileById - Failed to get posts:", postError.message);
+            console.error(
+              "GetUserProfileById - Failed to get posts:",
+              postError.message
+            );
             return { error: postError.message };
           }
-    
+
           const enrichedPosts = [];
           for (const post of postData) {
             const { data: creatorData, error: creatorError } = await supabase
@@ -282,18 +316,21 @@ export const resolvers = {
               .select("id, username, profile")
               .eq("id", post.createdBy)
               .single();
-    
+
             if (creatorError) {
-              console.error("GetUserProfileById - Failed to get creator details:", creatorError.message);
+              console.error(
+                "GetUserProfileById - Failed to get creator details:",
+                creatorError.message
+              );
               continue;
             }
-    
+
             const postedBy = {
               id: creatorData.id,
               username: creatorData.username,
               profile: creatorData.profile,
             };
-    
+
             if (!post.tagedUserId) {
               enrichedPosts.push({
                 ...post,
@@ -302,31 +339,35 @@ export const resolvers = {
               });
               continue;
             }
-    
+
             const tagedUserIds = post.tagedUserId.split(",");
-    
-            const { data: taggedUsersData, error: taggedUserError } = await supabase
-              .from("socialix")
-              .select("id, username, profile")
-              .in("id", tagedUserIds);
-    
+
+            const { data: taggedUsersData, error: taggedUserError } =
+              await supabase
+                .from("socialix")
+                .select("id, username, profile")
+                .in("id", tagedUserIds);
+
             if (taggedUserError) {
-              console.error("GetUserProfileById - Error fetching tagged user data:", taggedUserError.message);
+              console.error(
+                "GetUserProfileById - Error fetching tagged user data:",
+                taggedUserError.message
+              );
               continue;
             }
-    
+
             const tagedUserDetails = taggedUsersData.map((user) => ({
               tagedUserId: user.id,
               tagedUserName: user.username,
             }));
-    
+
             enrichedPosts.push({
               ...post,
               postedBy,
               tagedUsers: tagedUserDetails,
             });
           }
-    
+
           if (postData || userData) {
             return {
               user: userData,
@@ -342,10 +383,14 @@ export const resolvers = {
         console.error("GetUserProfileById - Error occurred:", err);
       }
     },
-    
+
     GetPost: async (
       _: any,
-      { id, limit = 10, offset = 0 }: { id: string, limit: number, offset: number },
+      {
+        id,
+        limit = 10,
+        offset = 0,
+      }: { id: string; limit: number; offset: number },
       context: any
     ) => {
       try {
@@ -353,28 +398,34 @@ export const resolvers = {
           console.error("GetPost - Unauthenticated user");
           return { Error: "Unauth user" };
         }
-    
+
         const { data: userData, error: userError } = await supabase
           .from("socialix")
           .select("following")
           .eq("id", context.id)
           .single();
-    
+
         if (userError) {
-          console.error("GetPost - Failed to fetch following list:", userError.message);
+          console.error(
+            "GetPost - Failed to fetch following list:",
+            userError.message
+          );
           return { Error: userError.message };
         }
-    
+
         if (!userData.following) {
           return { postData: [] };
         }
-    
+
         const followingIds: string[] = userData.following
           .split(",")
           .map((id: string) => id.trim())
           .filter((id: string) => id && id !== "null" && id !== "undefined")
-          .filter((id: string, index: number, self: string[]) => self.indexOf(id) === index);
-    
+          .filter(
+            (id: string, index: number, self: string[]) =>
+              self.indexOf(id) === index
+          );
+
         const { data: postData, error: postError } = await supabase
           .from("post")
           .select(
@@ -383,12 +434,12 @@ export const resolvers = {
           .in("createdBy", followingIds)
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
-    
+
         if (postError) {
           console.error("GetPost - Failed to fetch posts:", postError.message);
           return { Error: postError.message };
         }
-    
+
         if (postData) {
           const enrichedPosts = [];
           for (const post of postData) {
@@ -397,18 +448,21 @@ export const resolvers = {
               .select("id, username, profile")
               .eq("id", post.createdBy)
               .single();
-    
+
             if (creatorError) {
-              console.error("GetPost - Failed to get creator details:", creatorError.message);
+              console.error(
+                "GetPost - Failed to get creator details:",
+                creatorError.message
+              );
               continue;
             }
-    
+
             const postedBy = {
               id: creatorData.id,
               username: creatorData.username,
               profile: creatorData.profile,
             };
-    
+
             if (!post.tagedUserId) {
               enrichedPosts.push({
                 ...post,
@@ -417,24 +471,28 @@ export const resolvers = {
               });
               continue;
             }
-    
+
             const tagedUserIds = post.tagedUserId.split(",");
-    
-            const { data: taggedUsersData, error: taggedUserError } = await supabase
-              .from("socialix")
-              .select("id, username, profile")
-              .in("id", tagedUserIds);
-    
+
+            const { data: taggedUsersData, error: taggedUserError } =
+              await supabase
+                .from("socialix")
+                .select("id, username, profile")
+                .in("id", tagedUserIds);
+
             if (taggedUserError) {
-              console.error("GetPost - Error fetching tagged user data:", taggedUserError.message);
+              console.error(
+                "GetPost - Error fetching tagged user data:",
+                taggedUserError.message
+              );
               continue;
             }
-    
+
             const tagedUserDetails = taggedUsersData.map((user) => ({
               tagedUserId: user.id,
               tagedUserName: user.username,
             }));
-    
+
             enrichedPosts.push({
               ...post,
               postedBy,
@@ -447,9 +505,63 @@ export const resolvers = {
         console.error("GetPost - Error occurred:", err);
       }
     },
-
- },
+  },
   Mutation: {
+    verifyOtp: async (_: any, { otp }: { otp: string }) => {
+      try {
+        const isVlaid = sendOtp.validateOtp(sendOtp.getOtp() as string, otp);
+        if (isVlaid) {
+          return { message: "OTP verified successfully", isCreated: true };
+        } else {
+          return { message: "Invalid OTP", isCreated: false };
+        }
+      } catch (error) {
+        console.error("Error while verifying OTP:", error);
+      }
+    },
+    resetPassword: async (
+      _: any,
+      { newPassword }: { newPassword: string }
+    ) => {
+      try {
+        const hashedPassword = await hashPassword(newPassword);
+        const email = sendOtp.getEmail();
+        console.log("EMAIL", email);
+        const { data, error } = await supabase
+          .from("socialix")
+          .update({ password: hashedPassword })
+          .eq("id", email)
+          .single();
+          if(error){
+            console.error("Error while resetting password:", error);
+            return { message: "Failed to reset password", isCreated: false };
+          }
+          if(data){
+            return { message: "Password reset successfully", isCreated: true };
+          }
+      } catch (error) {}
+    },
+    SendOtp: async (_: any, { email }: { email: string }) => {
+      try {
+        console.log("EMAIL");
+        const { data, error } = await supabase
+          .from("socialix")
+          .select("email")
+          .eq("email", email)
+          .single();
+
+        if (error) {
+          console.error("SendOtp - Error fetching user data:", error.message);
+          return { message: "Failed to send OTP", isSent: false };
+        }
+        if (data) {
+          await sendOtp.sendOtpForAuthentication(email);
+          return { message: "Sent OTP Successfully", isSent: true };
+        }
+      } catch (error) {
+        console.error("SendOtp - Error sending OTP:", error);
+      }
+    },
     loginWithGoogle: async (_: any, { code }: { code: string }) => {
       try {
         const decoded = jwtDecode<JwtPayload>(code);
@@ -461,12 +573,15 @@ export const resolvers = {
             .select("id, profile, username, email, followers, following")
             .eq("email", email)
             .single();
-    
+
           if (error) {
-            console.error("loginWithGoogle - Error fetching user data:", error.message);
+            console.error(
+              "loginWithGoogle - Error fetching user data:",
+              error.message
+            );
             return { Error: error.message };
           }
-    
+
           if (data) {
             const userData = {
               id: data.id,
@@ -490,36 +605,49 @@ export const resolvers = {
         return { Error: "Failed to login with Google." };
       }
     },
-    
+
     createUser: async (
       _: any,
-      { username, email, password }: { username: String; email: string; password: string }
+      {
+        username,
+        email,
+        password,
+      }: { username: String; email: string; password: string }
     ) => {
       try {
-        const { data: UserExist , error: UserExistError } = await supabase
-        .from("socialix")
-        .select("username, email")
-        .eq("username", username)
-        .eq("email", email)
-        .single();
+        const { data: UserExist, error: UserExistError } = await supabase
+          .from("socialix")
+          .select("username, email")
+          .eq("username", username)
+          .eq("email", email)
+          .single();
         if (UserExistError) {
-          console.error("createUser - Error fetching user data:", UserExistError.message);
+          console.error(
+            "createUser - Error fetching user data:",
+            UserExistError.message
+          );
           return { error: UserExistError.message };
         }
-        if(UserExist){
-          return { message: "username or email already in use", isCreated: false };
+        if (UserExist) {
+          return {
+            message: "username or email already in use",
+            isCreated: false,
+          };
         }
         const hashedPassword = await hashPassword(password);
         const { data, error } = await supabase
           .from("socialix")
           .insert([{ username, email, password: hashedPassword }])
           .select();
-    
+
         if (error) {
-          console.error("createUser - Error inserting user data:", error.message);
+          console.error(
+            "createUser - Error inserting user data:",
+            error.message
+          );
           return { error: error.message };
         }
-    
+
         if (data) {
           return { message: "Created successfully", isCreated: true };
         }
@@ -528,7 +656,7 @@ export const resolvers = {
         return { error: "Failed to create user" };
       }
     },
-    
+
     loginUser: async (
       _: any,
       { email, password }: { email: string; password: string }
@@ -536,22 +664,24 @@ export const resolvers = {
       try {
         const { data, error } = await supabase
           .from("socialix")
-          .select("id, profile, username, password, email, followers, following")
+          .select(
+            "id, profile, username, password, email, followers, following"
+          )
           .eq("email", email)
           .single();
-    
+
         if (error) {
           console.error("loginUser - Error fetching user data:", error.message);
           return { error: "User not found" };
         }
-    
+
         if (data) {
           const isMatch = await bcrypt.compare(password, data.password);
           if (!isMatch) {
             console.error("loginUser - Invalid password");
             return { error: "Invalid password" };
           }
-    
+
           const userData = {
             id: data.id,
             profile: data.profile,
@@ -563,7 +693,7 @@ export const resolvers = {
           const token = jwt.sign(userData, process.env.JWT_SECRET!, {
             expiresIn: "12h",
           });
-    
+
           return {
             ...userData,
             token, // Include the token in the response
@@ -574,10 +704,22 @@ export const resolvers = {
         return { error: "Failed to login" };
       }
     },
-    
+
     uploadFile: async (
       _: any,
-      { file, caption, postTitle, category, taggedUserIds }: { file: any; caption: string; postTitle: string; category: string; taggedUserIds: [String] },
+      {
+        file,
+        caption,
+        postTitle,
+        category,
+        taggedUserIds,
+      }: {
+        file: any;
+        caption: string;
+        postTitle: string;
+        category: string;
+        taggedUserIds: [String];
+      },
       context: any
     ) => {
       try {
@@ -586,10 +728,10 @@ export const resolvers = {
           console.error("uploadFile - Error: Caption is required.");
           return { error: "Caption is required" };
         }
-    
+
         // Convert taggedUserIds array to a comma-separated string
         const taggedUsers = taggedUserIds ? taggedUserIds.join(",") : null;
-    
+
         const { data: postData, error: postError } = await supabase
           .from("post")
           .insert([
@@ -602,12 +744,15 @@ export const resolvers = {
               createdBy: context.id, // Replace this with the logged-in user ID
             },
           ]);
-    
+
         if (postError) {
-          console.error("uploadFile - Error during post insertion:", postError.message);
+          console.error(
+            "uploadFile - Error during post insertion:",
+            postError.message
+          );
           return { error: postError.message };
         }
-    
+
         // Return a response with the post details
         return {
           isUploaded: true,
@@ -618,7 +763,7 @@ export const resolvers = {
         return { error: "Failed to upload file." };
       }
     },
-    
+
     FollowUser: async (
       _: any,
       { userId }: { userId: string },
@@ -630,36 +775,39 @@ export const resolvers = {
           console.error("FollowUser - Error: User is not logged in.");
           return { error: "User is not logged in." };
         }
-    
+
         // Check if the user is trying to follow themselves
         if (context.id === userId) {
           console.error("FollowUser - Error: You cannot follow yourself.");
           return { error: "You cannot follow yourself." };
         }
-    
+
         // Query the database to check if the user exists
         const { data: userData, error: userError } = await supabase
           .from("socialix")
           .select("id, following")
           .eq("id", context.id)
           .single();
-    
+
         if (userError) {
-          console.error("FollowUser - Error during user fetch:", userError.message);
+          console.error(
+            "FollowUser - Error during user fetch:",
+            userError.message
+          );
           return { error: `Failed to get user: ${userError.message}` };
         }
-    
+
         // Check if the user exists
         if (!userData) {
           console.error("FollowUser - Error: User does not exist.");
           return { error: "User does not exist." };
         }
-    
+
         // Parse the following string to an array
         const following = userData.following
           ? userData.following.split(",")
           : [];
-    
+
         // Check if the user is already following the target user
         if (following.includes(userId)) {
           return {
@@ -667,37 +815,43 @@ export const resolvers = {
             message: "Already Following",
           };
         }
-    
+
         // Add the user ID to the following array
         following.push(userId);
-    
+
         // Update the following field in the database
         const { error: updateError } = await supabase
           .from("socialix")
           .update({ following: `${following.join(",")},` })
           .eq("id", context.id);
-    
+
         if (updateError) {
-          console.error("FollowUser - Error during user follow update:", updateError.message);
+          console.error(
+            "FollowUser - Error during user follow update:",
+            updateError.message
+          );
           return { error: `Failed to follow user: ${updateError.message}` };
         }
-    
+
         // Fetch the follower details of the target user
         const { data: follower, error: followerError } = await supabase
           .from("socialix")
           .select("id, followers")
           .eq("id", userId)
           .single();
-    
+
         if (!follower) {
-          console.error("FollowUser - Error: Follower data fetch failed:", followerError.message);
+          console.error(
+            "FollowUser - Error: Follower data fetch failed:",
+            followerError.message
+          );
           return { error: `Failed to retrieve user: ${followerError.message}` };
         }
-    
+
         const followers = follower.followers
           ? follower.followers.split(",")
           : [];
-    
+
         // Add the current user to the target user's followers list if not already a follower
         if (!followers.includes(String(context.id))) {
           followers.push(context.id);
@@ -705,15 +859,18 @@ export const resolvers = {
             .from("socialix")
             .update({ followers: `${followers.join(",")},` })
             .eq("id", userId);
-    
+
           if (updateFollowerError) {
-            console.error("FollowUser - Error during follower update:", updateFollowerError.message);
+            console.error(
+              "FollowUser - Error during follower update:",
+              updateFollowerError.message
+            );
             return {
               error: `Error occurred while updating follower - FollowUser Mutation: ${updateFollowerError.message}`,
             };
           }
         }
-    
+
         // Successfully followed the user
         return {
           isFollowed: true,
@@ -724,7 +881,7 @@ export const resolvers = {
         return { error: "Failed to follow user." };
       }
     },
-    
+
     UnFollowUser: async (
       _: any,
       { userId }: { userId: string },
@@ -736,30 +893,33 @@ export const resolvers = {
           console.error("UnFollowUser - Error: User is not logged in.");
           return { error: "User is not logged in." };
         }
-    
+
         // Check if the user is trying to unfollow themselves
         if (context.id === userId) {
           console.error("UnFollowUser - Error: You cannot unfollow yourself.");
           return { error: "You cannot unfollow yourself." };
         }
-    
+
         const { data: userData, error: userError } = await supabase
           .from("socialix")
           .select("id, following")
           .eq("id", context.id)
           .single();
-        
+
         if (userError) {
-          console.error("UnFollowUser - Error during user fetch:", userError.message);
+          console.error(
+            "UnFollowUser - Error during user fetch:",
+            userError.message
+          );
           return { error: `Failed to get user: ${userError.message}` };
         }
-    
+
         // Check if the user exists
         if (!userData) {
           console.error("UnFollowUser - Error: User does not exist.");
           return { error: "User does not exist." };
         }
-    
+
         // Parse the following list and remove the userId
         const following = userData.following
           ? userData.following.split(",")
@@ -767,53 +927,64 @@ export const resolvers = {
         const updatedFollowing = following.filter(
           (followingId: string) => followingId !== userId
         );
-    
+
         // Update the user's following list (make sure to remove trailing comma)
         const { error: updateError } = await supabase
           .from("socialix")
           .update({ following: updatedFollowing.join(",") }) // Removed the extra comma here
           .eq("id", context.id);
-        
+
         if (updateError) {
-          console.error("UnFollowUser - Error during following update:", updateError.message);
+          console.error(
+            "UnFollowUser - Error during following update:",
+            updateError.message
+          );
           return { error: `Failed to unfollow user: ${updateError.message}` };
         }
-    
+
         const { data: follower, error: followerError } = await supabase
           .from("socialix")
           .select("followers")
           .eq("id", userId)
           .single();
-    
+
         if (followerError) {
-          console.error("UnFollowUser - Error while getting follower data:", followerError.message);
-          return { error: `Error while getting follower user data - UnFollowUser Mutation: ${followerError.message}` };
+          console.error(
+            "UnFollowUser - Error while getting follower data:",
+            followerError.message
+          );
+          return {
+            error: `Error while getting follower user data - UnFollowUser Mutation: ${followerError.message}`,
+          };
         }
-    
+
         if (follower) {
           // Get the followers list and remove the context.id (current user)
           const followersList = follower.followers
             ? follower.followers.split(",")
             : [];
-    
+
           // Remove any empty strings after splitting (e.g., trailing commas)
           const updatedFollowersList = followersList.filter(
             (id: string) => id !== String(context.id) && id !== ""
           );
-    
+
           // Update the user's followers list (again, no trailing comma)
           const { error: updateFollowerError } = await supabase
             .from("socialix")
             .update({ followers: updatedFollowersList.join(",") }) // Removed the extra comma here as well
             .eq("id", userId);
-    
+
           if (updateFollowerError) {
-            console.error("UnFollowUser - Error during follower list update:", updateFollowerError.message);
+            console.error(
+              "UnFollowUser - Error during follower list update:",
+              updateFollowerError.message
+            );
             return {
               error: `Error occurred while updating follower list of user - UnFollowUser Mutation: ${updateFollowerError.message}`,
             };
           }
-    
+
           return {
             isFollowed: false, // Updated to false because the user is unfollowed
             message: "User unfollowed successfully.",
@@ -824,8 +995,8 @@ export const resolvers = {
         return { error: "Error occurred while unfollowing user" };
       }
     },
-    
-   searchUsersByLetters: async (_: any, { letter }: { letter: String }) => {
+
+    searchUsersByLetters: async (_: any, { letter }: { letter: String }) => {
       try {
         // Query Supabase for users whose username starts with the given letter
         const { data, error } = await supabase
@@ -843,6 +1014,6 @@ export const resolvers = {
         console.error("Error searching users:", err);
         return [];
       }
-    }, 
+    },
   },
 };
