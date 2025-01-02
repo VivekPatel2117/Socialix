@@ -8,7 +8,6 @@ async function hashPassword(plainPassword: string) {
   try {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(plainPassword, saltRounds);
-    console.log('Hashed Password:', hashedPassword);
     return hashedPassword;
   } catch (error) {
     console.error('Error hashing password:', error);
@@ -497,6 +496,19 @@ export const resolvers = {
       { username, email, password }: { username: String; email: string; password: string }
     ) => {
       try {
+        const { data: UserExist , error: UserExistError } = await supabase
+        .from("socialix")
+        .select("username, email")
+        .eq("username", username)
+        .eq("email", email)
+        .single();
+        if (UserExistError) {
+          console.error("createUser - Error fetching user data:", UserExistError.message);
+          return { error: UserExistError.message };
+        }
+        if(UserExist){
+          return { message: "username or email already in use", isCreated: false };
+        }
         const hashedPassword = await hashPassword(password);
         const { data, error } = await supabase
           .from("socialix")
@@ -650,7 +662,6 @@ export const resolvers = {
     
         // Check if the user is already following the target user
         if (following.includes(userId)) {
-          console.log("FollowUser - Already following the user.");
           return {
             isFollowed: true,
             message: "Already Following",
