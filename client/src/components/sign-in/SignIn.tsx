@@ -98,15 +98,6 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     const token = credentialResponse.credential;
     loginWithGoogle({variables: {code:token}})
     }
-    if(GoogleLoginData){
-      const responseToken = GoogleLoginData.loginWithGoogle.token;
-      if(responseToken){
-        localStorage.setItem('token',responseToken)
-        navigate('/home')
-      }else{
-        toast.error("You need to signup first");
-      }
-    }
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (emailError || passwordError) {
@@ -159,6 +150,15 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
          navigate('/home')
     }else{
       toast.error("Invalid credentials");
+    }
+  }
+  if(GoogleLoginData){
+    if(GoogleLoginData.loginWithGoogle.token){
+      const responseToken = GoogleLoginData.loginWithGoogle.token;
+        localStorage.setItem('token',responseToken)
+        navigate('/home')
+    }else{
+      toast.error("You need to signup first");
     }
   }
   return (

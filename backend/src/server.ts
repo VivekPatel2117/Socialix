@@ -58,7 +58,7 @@ const startServer = async () => {
 
   // Enable CORS to allow cross-origin requests
   app.use(cors({
-    origin: '*', // Only allow your frontend domain
+    origin: '*', 
   }));
   
 };
