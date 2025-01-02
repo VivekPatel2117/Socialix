@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
+import Link from "@mui/material/Link";
 import AppTheme from "./theme/AppTheme";
 import { gql, useMutation } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
@@ -151,6 +152,16 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             <Button type="submit" fullWidth variant="contained">
               Sign up
             </Button>
+            <Typography sx={{ textAlign: "center" }}>
+              Already a user?{" "}
+              <Link
+                href="/"
+                variant="body2"
+                sx={{ alignSelf: "center" }}
+              >
+                Sign In
+              </Link>
+            </Typography>
           </Box>
         </Card>
       </SignInContainer>
