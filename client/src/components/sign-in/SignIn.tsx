@@ -67,7 +67,6 @@ const query = gql`
       }
     }
   `;
-
   const GOOGLE_LOGIN_MUTATION = gql`
   mutation googleLogin($code: String!) {
     loginWithGoogle (code: $code){

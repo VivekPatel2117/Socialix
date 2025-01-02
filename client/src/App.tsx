@@ -12,6 +12,7 @@ import { ToastContainer } from 'react-toastify';
 import { useEffect, useState } from 'react';
 import MoblieNav from './components/MoblieNav';
 import './App.css';
+import ResetPassword from './components/ResetPassword';
 
 // Route constants for better maintainability
 const ROUTES = {
@@ -22,6 +23,7 @@ const ROUTES = {
   CREATE: '/create',
   LOGOUT: '/logout',
   SIGNIN: '/',
+  RESET: '/reset',
   NOT_FOUND: '*',
 };
 
@@ -29,7 +31,7 @@ const AppContent: React.FC = () => {
   const location = useLocation();
 
   // Define routes where the Navbar should not appear
-  const hideNavbarRoutes = [ROUTES.SIGNUP, ROUTES.SIGNIN];
+  const hideNavbarRoutes = [ROUTES.SIGNUP, ROUTES.SIGNIN, ROUTES.RESET];
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
@@ -69,6 +71,7 @@ const AppContent: React.FC = () => {
           <Route path={ROUTES.PROFILE} element={<Profile />} />
           <Route path={ROUTES.USER_PROFILE} element={<Profile />} />
           <Route path={ROUTES.LOGOUT} element={<Logout />} />
+          <Route path={ROUTES.RESET} element={<ResetPassword />} />
         </Routes>
         <ToastContainer />
       </div>
