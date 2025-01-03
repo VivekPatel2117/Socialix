@@ -144,27 +144,26 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
   if(error || GoogleLoginError){
     <p className="text-red-700 text-center">Some internal Error occured please try again...!</p>
   }
-  if (data && data.loginUser) {
-    const token = data.loginUser.token;
-    localStorage.setItem('token', token);
-    localStorage.setItem('userId', data.loginUser.id);
-    navigate('/home');
-  } else {
-    toast.error("Invalid credentials");
-  }  
-  if (GoogleLoginData && GoogleLoginData.loginWithGoogle) {
-    if (GoogleLoginData.loginWithGoogle.token) {
+  if(data){
+    if(data.loginUser){
+      const token = data.loginUser.token;
+          localStorage.setItem('token',token)
+          localStorage.setItem('userId',data.loginUser.id)
+         navigate('/home')
+    }else{
+      toast.error("Invalid credentials");
+    }
+  }
+  if(GoogleLoginData){
+    if(GoogleLoginData.loginWithGoogle.token){
       const responseToken = GoogleLoginData.loginWithGoogle.token;
-      localStorage.setItem('token', responseToken);
-      localStorage.setItem('userId', GoogleLoginData.loginWithGoogle.id);
-      navigate('/home');
-    } else {
+        localStorage.setItem('token',responseToken)
+        localStorage.setItem('userId',GoogleLoginData.loginWithGoogle.id)
+        navigate('/home')
+    }else{
       toast.error("You need to signup first");
     }
-  } else {
-    toast.error("Error: Invalid login data");
   }
-  
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
