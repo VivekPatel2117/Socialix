@@ -2,7 +2,6 @@ import React,{useEffect, useState} from "react";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { Link, useNavigate } from "react-router-dom";
 import LogoutIcon from '@mui/icons-material/Logout';
-import ConnectWithoutContactIcon from '@mui/icons-material/ConnectWithoutContact';
 import { gql, useMutation, useQuery} from "@apollo/client";
 import { debounce } from "lodash";
 import SearchIcon from '@mui/icons-material/Search';
@@ -16,6 +15,8 @@ import StringAvatar from "./StringAvatar";
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import { toast } from "react-toastify";
+import { ExploreRounded } from "@mui/icons-material";
+import SocialixLogo from '../assets/socialx-bg.jpeg'
 const Navbar: React.FC = () => {
   const handleSearchedUser = (id: string) => {
     const searchInput = document.getElementById("search") as HTMLInputElement | null;
@@ -130,8 +131,8 @@ const Navbar: React.FC = () => {
   ): (
     <div className="shadow h-24 w-full p-2  justify-center items-center flex gap-24 ">
       <div onClick={()=>handleNaviagtion("/home")} className="branding hover:cursor-pointer flex items-center gap-2">
-        <div className="rounded-box h-16 w-16 ">
-         <div className="rounded-full object-cover"><ConnectWithoutContactIcon sx={{fontSize:"64px"}}/></div>
+        <div className="rounded-box h-16 w-16 overflow-hidden">
+         <div className="rounded-full object-cover"><Avatar sx={{height:"64px",width:"64px"}} src={SocialixLogo} /></div>
         </div>
         <h1 className="text-2xl">Socialix</h1>
       </div>
@@ -195,6 +196,13 @@ const Navbar: React.FC = () => {
                 </Tooltip>
               </Link>
             </li>
+              <li onClick={()=>handleNaviagtion("/explore")}>
+            <Tooltip title="Explore">
+                <IconButton>
+                    <ExploreRounded/>
+                </IconButton>
+              </Tooltip>
+              </li>
             <li onClick={()=>handleNaviagtion("/logout")}>
             <Tooltip title="Logout">
                 <IconButton>

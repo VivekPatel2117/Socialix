@@ -8,6 +8,7 @@ import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
 import { useRef, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom';
 const fallbackImage = 'https://via.placeholder.com/800x450?text=No+Image+Available';
 interface PostListProps {
   posts: any[];
@@ -152,7 +153,7 @@ const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMo
           <Author tagedUsers={post.tagedUsers || []} postDate={post.created_at} />
           {post.postedBy.username && (
           <Typography sx={{display:'flex', alignItems:"center", gap:"1vh",padding:"1vw"}} variant="caption">
-            Posted By: <Avatar sx={{height:isMobile ? '3vh':'4vh',width:isMobile ? '3vh':'4vh'}} alt={post.postedBy.username} src={post.postedBy.profile} /> {post.postedBy.username}
+            Posted By: <Link to={`/userProfile/${post.createdBy}`} > <Avatar sx={{height:isMobile ? '3vh':'4vh',width:isMobile ? '3vh':'4vh'}} alt={post.postedBy.username} src={post.postedBy.profile} /></Link> {post.postedBy.username}
           </Typography>
           )}
         </StyledCard>

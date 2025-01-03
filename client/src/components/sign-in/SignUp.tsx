@@ -101,7 +101,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             variant="h4"
             sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
           >
-            Sign up
+            Sign up for Socialix
           </Typography>
           <Box
             component="form"
@@ -160,7 +160,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             <Typography sx={{ textAlign: "center" }}>
               Already a user?{" "}
               <Link
-                href="/"
+                href="/signin"
                 variant="body2"
                 sx={{ alignSelf: "center" }}
               >

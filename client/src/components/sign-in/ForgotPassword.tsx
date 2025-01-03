@@ -94,7 +94,7 @@ export default function ForgotPassword({
         <Button variant="contained" onClick={handleSendOtp} disabled={loading}>
           {loading ? (
           <Box sx={{ display: "flex" }}>
-            <CircularProgress />
+            <CircularProgress sx={{color:'white', margin:'1%'}} />
           </Box>
           ): (
             "Proceed"

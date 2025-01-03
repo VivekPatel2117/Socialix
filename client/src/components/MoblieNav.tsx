@@ -7,6 +7,7 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useLocation, useNavigate } from "react-router-dom"; // Import useLocation hook
 import HomeIcon from '@mui/icons-material/Home';
+import { ExploreRounded } from "@mui/icons-material";
 export default function MoblieNav() {
   const [value, setValue] = React.useState<number | null>();
   const location = useLocation(); // Get current location
@@ -30,8 +31,11 @@ export default function MoblieNav() {
             setValue(2);
             break;
           case "/logout":
-            setValue(3);
+            setValue(4);
             break;
+            case "/explore":
+              setValue(3);
+              break;
           default:
             setValue(null);
         }
@@ -62,6 +66,11 @@ export default function MoblieNav() {
             onClick={() => handleNavigation("/create")}
             label="Create"
             icon={<AddCircleOutlineIcon />}
+          />
+           <BottomNavigationAction
+            onClick={() => handleNavigation("/explore")}
+            label="Explore"
+            icon={<ExploreRounded />}
           />
           <BottomNavigationAction
             onClick={() => handleNavigation("/logout")}

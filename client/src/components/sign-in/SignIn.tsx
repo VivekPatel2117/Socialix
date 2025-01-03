@@ -64,6 +64,7 @@ const query = gql`
     mutation login($email: String!, $password: String!) {
       loginUser(email: $email, password: $password) {
         token
+        id
       }
     }
   `;
@@ -71,6 +72,7 @@ const query = gql`
   mutation googleLogin($code: String!) {
     loginWithGoogle (code: $code){
       token  
+      id
     }  
   }
   `;
@@ -146,6 +148,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     if(data.loginUser.token){
       const token = data.loginUser.token;
           localStorage.setItem('token',token)
+          localStorage.setItem('userId',data.loginUser.id)
          navigate('/home')
     }else{
       toast.error("Invalid credentials");
@@ -155,6 +158,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     if(GoogleLoginData.loginWithGoogle.token){
       const responseToken = GoogleLoginData.loginWithGoogle.token;
         localStorage.setItem('token',responseToken)
+        localStorage.setItem('userId',GoogleLoginData.loginWithGoogle.id)
         navigate('/home')
     }else{
       toast.error("You need to signup first");
@@ -171,7 +175,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             variant="h4"
             sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
           >
-            Sign in
+            Sign in for Socialix
           </Typography>
           <Box
             component="form"

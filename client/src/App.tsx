@@ -13,6 +13,8 @@ import { useEffect, useState } from 'react';
 import MoblieNav from './components/MoblieNav';
 import './App.css';
 import ResetPassword from './components/ResetPassword';
+import Landing from './pages/Landing';
+import Explore from './pages/Explore';
 
 // Route constants for better maintainability
 const ROUTES = {
@@ -22,16 +24,18 @@ const ROUTES = {
   USER_PROFILE: '/userProfile/:id',
   CREATE: '/create',
   LOGOUT: '/logout',
-  SIGNIN: '/',
+  SIGNIN: '/signin',
   RESET: '/reset',
   NOT_FOUND: '*',
+  LANDING: '/',
+  EXPLORE: '/explore'
 };
 
 const AppContent: React.FC = () => {
   const location = useLocation();
 
   // Define routes where the Navbar should not appear
-  const hideNavbarRoutes = [ROUTES.SIGNUP, ROUTES.SIGNIN, ROUTES.RESET];
+  const hideNavbarRoutes = [ROUTES.SIGNUP, ROUTES.SIGNIN, ROUTES.RESET, ROUTES.LANDING];
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
@@ -66,12 +70,14 @@ const AppContent: React.FC = () => {
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.CREATE} element={<CreatePost />} />
           <Route path={ROUTES.NOT_FOUND} element={<NotFound />} />
-          <Route index path={ROUTES.SIGNIN} element={<Signin />} />
+          <Route index path={ROUTES.LANDING} element={<Landing />} />
+          <Route path={ROUTES.SIGNIN} element={<Signin />} />
           <Route path={ROUTES.SIGNUP} element={<SignUp />} />
           <Route path={ROUTES.PROFILE} element={<Profile />} />
           <Route path={ROUTES.USER_PROFILE} element={<Profile />} />
           <Route path={ROUTES.LOGOUT} element={<Logout />} />
           <Route path={ROUTES.RESET} element={<ResetPassword />} />
+          <Route path={ROUTES.EXPLORE} element={<Explore/>} />
         </Routes>
         <ToastContainer />
       </div>

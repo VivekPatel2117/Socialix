@@ -163,8 +163,10 @@ const Profile: React.FC = () => {
   const [profileData, setProfileData] = useState<
     ProfileData["GetUserProfile"] | ProfileData["GetUserProfileById"] | null
   >(null);
+  
   useEffect(() => {
-    if (id) {
+    if (id && id !== localStorage.getItem('userId')) {
+      console.log("HELLO")
       setIsDyanmicProfile(true);
       fetchPosts();
     } else {

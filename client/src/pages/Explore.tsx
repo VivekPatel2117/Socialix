@@ -4,13 +4,12 @@ import MainContent from '../components/MainContent';
 import { gql, useLazyQuery } from '@apollo/client';
 import SkeletonLoader from '../components/SkeletonLoader';
 import Error from './Error';
-import { Link } from 'react-router-dom';
-const Home: React.FC = () => {
+const Explore: React.FC = () => {
    const [offset, setOffset] = useState(0);
     const limit = 10;
   const GET_POST_QUERY = gql`
     query GET_POST($limit: Int, $offset: Int) {
-      GetPost(limit: $limit, offset: $offset) {
+      GetAllPost(limit: $limit, offset: $offset) {
         id
         postImage
         caption
@@ -43,7 +42,7 @@ const Home: React.FC = () => {
   }
 
   interface PostData {
-    GetPost: Array<{
+    GetAllPost: Array<{
       id: number;
       postImage: string;
       caption: string;
@@ -63,8 +62,8 @@ const Home: React.FC = () => {
       fetchPosts();
     }, [offset, fetchPosts]);
     useEffect(() => {
-      if (data && data.GetPost) {
-        setPosts((prev) => [...prev, ...data.GetPost]);
+      if (data && data.GetAllPost) {
+        setPosts((prev) => [...prev, ...data.GetAllPost]);
       }
     }, [data]);
   if (loading) {
@@ -82,7 +81,7 @@ const Home: React.FC = () => {
   }
 
   if (data) {
-    if(data.GetPost.length > 0){
+    if(data.GetAllPost.length > 0){
       return (
         <div className="grid w-full justify-center">
           <Container
@@ -99,8 +98,7 @@ const Home: React.FC = () => {
   }
 
   // Fallback in case nothing is returned
-  return <p className='text-center'>No Post by your following User <br />
-   <Link to={'/explore'}>Click Here!</Link> and explore all post by users</p>;
+  return <p className='text-center'>No Post Available</p>;
 };
 
-export default Home;
+export default Explore;
