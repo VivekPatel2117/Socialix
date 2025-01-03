@@ -40,18 +40,9 @@ const AppContent: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
   useEffect(() => {
-    // Optimize resize handling using a debounce function
-    const debounce = (fn: () => void, delay: number) => {
-      let timer: NodeJS.Timeout;
-      return () => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn(), delay);
-      };
-    };
-
-    const handleResize = debounce(() => {
+    const handleResize = () => {
       setIsMobile(window.innerWidth <= 1024);
-    }, 300);
+    };
 
     handleResize(); // Initial check
     window.addEventListener('resize', handleResize);
