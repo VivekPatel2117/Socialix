@@ -145,7 +145,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     <p className="text-red-700 text-center">Some internal Error occured please try again...!</p>
   }
   if(data){
-    if(data.loginUser.token){
+    if(data.loginUser){
       const token = data.loginUser.token;
           localStorage.setItem('token',token)
           localStorage.setItem('userId',data.loginUser.id)
