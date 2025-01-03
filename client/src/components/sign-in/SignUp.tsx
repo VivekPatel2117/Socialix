@@ -86,7 +86,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
   }
   if(data){
     if(data.createUser.isCreated){
-      navigate("/");
+      navigate("/home");
     }else{
       toast.error("Error occured username or email already in use")
     }

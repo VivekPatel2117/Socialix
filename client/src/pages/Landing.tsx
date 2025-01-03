@@ -11,6 +11,9 @@ const Landing = () => {
             <button className="bg-black text-white px-4 py-2 rounded-md">
              <Link to="/signup">Sign up</Link>
             </button>
+            <button className="bg-black text-white px-4 py-2 rounded-md">
+             <Link to="/signin">Sign in</Link>
+            </button>
           </nav>
         </div>
       </header>
