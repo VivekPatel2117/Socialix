@@ -709,19 +709,12 @@ export const resolvers = {
       }: { username: String; email: string; password: string }
     ) => {
       try {
-        const { data: UserExist, error: UserExistError } = await supabase
+        const { data: UserExist } = await supabase
           .from("socialix")
           .select("username, email")
           .eq("username", username)
           .eq("email", email)
           .single();
-        if (UserExistError) {
-          console.error(
-            "createUser - Error fetching user data:",
-            UserExistError.message
-          );
-          return { error: UserExistError.message };
-        }
         if (UserExist) {
           return {
             message: "username or email already in use",
