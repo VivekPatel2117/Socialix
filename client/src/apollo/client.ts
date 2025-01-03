@@ -2,7 +2,7 @@ import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 
 const httpLink = createHttpLink({
-  uri: 'http://socialix.onrender.com',
+  uri: 'https://socialix.onrender.com',
 });
 
 const authLink = setContext((_, { headers }) => {
