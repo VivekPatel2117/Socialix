@@ -29,8 +29,8 @@ const authUser = (token) => __awaiter(void 0, void 0, void 0, function* () {
 const context = (_a) => __awaiter(void 0, [_a], void 0, function* ({ req, res }) {
     try {
         const reqBody = req.body;
-        // Skip auth for specific operations (like login)
-        if (reqBody && reqBody.operationName === "login" || reqBody.operationName === "Singup" || reqBody.operationName === "googleLogin") {
+        console.log("Request Body:", reqBody);
+        if (reqBody && reqBody.operationName === "login" || reqBody.operationName === "sendOtpForUserAuth" || reqBody.operationName === "verifyOtp" || reqBody.operationName === "resetPassword" || reqBody.operationName === "Singup" || reqBody.operationName === "googleLogin") {
             return {};
         }
         // Get the authorization token from headers

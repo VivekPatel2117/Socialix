@@ -18,9 +18,8 @@ const authUser = async (token: string) => {
 const context = async ({ req, res }: { req: IncomingMessage; res: ServerResponse }) => {
   try {
     const reqBody = (req as express.Request).body;
-
-    // Skip auth for specific operations (like login)
-    if (reqBody && reqBody.operationName === "login" || reqBody.operationName === "Singup" || reqBody.operationName === "googleLogin") {
+    console.log("Request Body:", reqBody);
+    if (reqBody && reqBody.operationName === "login" || reqBody.operationName === "sendOtpForUserAuth" || reqBody.operationName === "verifyOtp" || reqBody.operationName === "resetPassword" || reqBody.operationName === "Singup" || reqBody.operationName === "googleLogin") {
       return {};
     }
 

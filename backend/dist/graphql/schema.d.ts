@@ -8,7 +8,7 @@ export declare const resolvers: {
             username: any;
             profile: any;
         }>;
-        GetUserProfile: (_: any, { id, limit, offset }: {
+        GetUserProfile: (_: any, { id, limit, offset, }: {
             id: String;
             limit: number;
             offset: number;
@@ -45,7 +45,7 @@ export declare const resolvers: {
             user?: undefined;
             postData?: undefined;
         }>;
-        GetUserProfileById: (_: any, { id, limit, offset }: {
+        GetUserProfileById: (_: any, { id, limit, offset, }: {
             id: String;
             limit: number;
             offset: number;
@@ -89,7 +89,7 @@ export declare const resolvers: {
             postData?: undefined;
             isFollowedByLoggedUser?: undefined;
         } | undefined>;
-        GetPost: (_: any, { id, limit, offset }: {
+        GetPost: (_: any, { id, limit, offset, }: {
             id: string;
             limit: number;
             offset: number;
@@ -118,8 +118,51 @@ export declare const resolvers: {
             category: any;
             postTitle: any;
         }[] | undefined>;
+        GetAllPost: (_: any, { id, limit, offset, }: {
+            id: string;
+            limit: number;
+            offset: number;
+        }, context: any) => Promise<{
+            Error: string;
+        } | {
+            postedBy: {
+                id: any;
+                username: any;
+                profile: any;
+            };
+            tagedUsers: {
+                tagedUserId: any;
+                tagedUserName: any;
+            }[];
+            id: any;
+            postImage: any;
+            caption: any;
+            tagedUserId: any;
+            createdBy: any;
+            created_at: any;
+            category: any;
+            postTitle: any;
+        }[] | undefined>;
     };
     Mutation: {
+        verifyOtp: (_: any, { otp }: {
+            otp: string;
+        }) => Promise<{
+            message: string;
+            isCreated: boolean;
+        } | undefined>;
+        resetPassword: (_: any, { newPassword }: {
+            newPassword: string;
+        }) => Promise<{
+            message: string;
+            isCreated: boolean;
+        } | undefined>;
+        SendOtp: (_: any, { email }: {
+            email: string;
+        }) => Promise<{
+            message: string;
+            isSent: boolean;
+        } | undefined>;
         loginWithGoogle: (_: any, { code }: {
             code: string;
         }) => Promise<{
@@ -134,7 +177,7 @@ export declare const resolvers: {
             following: any;
             Error?: undefined;
         } | undefined>;
-        createUser: (_: any, { username, email, password }: {
+        createUser: (_: any, { username, email, password, }: {
             username: String;
             email: string;
             password: string;
@@ -162,7 +205,7 @@ export declare const resolvers: {
             following: any;
             error?: undefined;
         } | undefined>;
-        uploadFile: (_: any, { file, caption, postTitle, category, taggedUserIds }: {
+        uploadFile: (_: any, { file, caption, postTitle, category, taggedUserIds, }: {
             file: any;
             caption: string;
             postTitle: string;

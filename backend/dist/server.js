@@ -49,7 +49,7 @@ const startServer = () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`🚀  Server ready at: ${url}`);
     // Enable CORS to allow cross-origin requests
     app.use((0, cors_1.default)({
-        origin: '*', // Only allow your frontend domain
+        origin: '*',
     }));
 });
 // Start the server

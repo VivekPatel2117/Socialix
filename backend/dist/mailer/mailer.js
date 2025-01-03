@@ -1,24 +1,34 @@
-import nodemailer from "nodemailer";
-
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sendOtp = void 0;
+const nodemailer_1 = __importDefault(require("nodemailer"));
 // Create a transporter object using SMTP transport
-const transporter = nodemailer.createTransport({
-  service: "gmail", // or any other email service
-  auth: {
-    user: "vivekp22it@student.mes.ac.in",
-    pass: process.env.EMAIL_PASSWORD,
-  },
+const transporter = nodemailer_1.default.createTransport({
+    service: "gmail", // or any other email service
+    auth: {
+        user: "vivekp22it@student.mes.ac.in",
+        pass: process.env.EMAIL_PASSWORD,
+    },
 });
-
 // Function to send OTP
-export const sendOtp = async (
-  recipientEmail: string,
-  otp: string
-): Promise<void> => {
-  const mailOptions = {
-    from: "vivekp22it@student.mes.ac.in", // Sender email address
-    to: recipientEmail, // Recipient email address
-    subject: "OTP for Authentication",
-    html: `<!DOCTYPE html>
+const sendOtp = (recipientEmail, otp) => __awaiter(void 0, void 0, void 0, function* () {
+    const mailOptions = {
+        from: "vivekp22it@student.mes.ac.in", // Sender email address
+        to: recipientEmail, // Recipient email address
+        subject: "OTP for Authentication",
+        html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -111,12 +121,13 @@ export const sendOtp = async (
 </body>
 </html>
 `,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log("OTP sent successfully!");
-  } catch (error) {
-    console.error("Error sending OTP:", error);
-  }
-};
+    };
+    try {
+        yield transporter.sendMail(mailOptions);
+        console.log("OTP sent successfully!");
+    }
+    catch (error) {
+        console.error("Error sending OTP:", error);
+    }
+});
+exports.sendOtp = sendOtp;

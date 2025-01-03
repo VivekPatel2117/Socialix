@@ -18,16 +18,16 @@ const supabaseClient_1 = require("../supabaseClient");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const jwt_decode_1 = require("jwt-decode");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const sendOtp_1 = __importDefault(require("../mailer/sendOtp"));
 function hashPassword(plainPassword) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const saltRounds = 10;
             const hashedPassword = yield bcryptjs_1.default.hash(plainPassword, saltRounds);
-            console.log('Hashed Password:', hashedPassword);
             return hashedPassword;
         }
         catch (error) {
-            console.error('Error hashing password:', error);
+            console.error("Error hashing password:", error);
         }
     });
 }
@@ -88,8 +88,13 @@ type Post {
   category: String
   postTitle: String
 }
+  type OTP_Response {
+    message: String
+    isSent: Boolean  
+  }
 
 type Query {
+  GetAllPost(limit: Int, offset: Int): [Post]
   GetBasicUserDetails: BasicUser
   GetUserProfile(limit: Int, offset: Int): UserProfile
   GetPost(limit: Int, offset: Int): [Post]
@@ -97,6 +102,9 @@ type Query {
 }
 
 type Mutation {
+  verifyOtp(otp: String!): CreateResponse
+  resetPassword(newPassword: String!): CreateResponse
+  SendOtp(email: String!): OTP_Response
   UnFollowUser(userId: ID!): FollowResponse
   FollowUser(userId: ID!): FollowResponse
   createUser(
@@ -121,7 +129,7 @@ type Mutation {
 exports.resolvers = {
     Query: {
         GetBasicUserDetails: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (
-        // This resolver is used to fetch the basic user details (id, username, profile) 
+        // This resolver is used to fetch the basic user details (id, username, profile)
         // for the logged-in user based on the context's user ID.
         _, { id }, context) {
             try {
@@ -141,7 +149,7 @@ exports.resolvers = {
                 return [];
             }
         }),
-        GetUserProfile: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { id, limit = 10, offset = 0 }, context) {
+        GetUserProfile: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { id, limit = 10, offset = 0, }, context) {
             try {
                 const { data, error } = yield supabaseClient_1.supabase
                     .from("socialix")
@@ -214,7 +222,7 @@ exports.resolvers = {
                 return { err };
             }
         }),
-        GetUserProfileById: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { id, limit = 10, offset = 0 }, context) {
+        GetUserProfileById: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { id, limit = 10, offset = 0, }, context) {
             try {
                 let isFollowedByLoggedUser = false;
                 const { data, error } = yield supabaseClient_1.supabase
@@ -228,7 +236,9 @@ exports.resolvers = {
                         .select("following")
                         .eq("id", context.id)
                         .single();
-                    const following = (contextUser === null || contextUser === void 0 ? void 0 : contextUser.following) ? contextUser === null || contextUser === void 0 ? void 0 : contextUser.following.split(",") : [];
+                    const following = (contextUser === null || contextUser === void 0 ? void 0 : contextUser.following)
+                        ? contextUser === null || contextUser === void 0 ? void 0 : contextUser.following.split(",")
+                        : [];
                     isFollowedByLoggedUser = following.includes(String(id));
                     const userData = {
                         id: data.id,
@@ -299,7 +309,7 @@ exports.resolvers = {
                 console.error("GetUserProfileById - Error occurred:", err);
             }
         }),
-        GetPost: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { id, limit = 10, offset = 0 }, context) {
+        GetPost: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { id, limit = 10, offset = 0, }, context) {
             try {
                 if (!context) {
                     console.error("GetPost - Unauthenticated user");
@@ -315,6 +325,7 @@ exports.resolvers = {
                     return { Error: userError.message };
                 }
                 if (!userData.following) {
+                    console.log("GetPost - No following list found");
                     return { postData: [] };
                 }
                 const followingIds = userData.following
@@ -333,6 +344,7 @@ exports.resolvers = {
                     return { Error: postError.message };
                 }
                 if (postData) {
+                    console.log("POST DATA", postData);
                     const enrichedPosts = [];
                     for (const post of postData) {
                         const { data: creatorData, error: creatorError } = yield supabaseClient_1.supabase
@@ -375,8 +387,124 @@ exports.resolvers = {
                 console.error("GetPost - Error occurred:", err);
             }
         }),
+        GetAllPost: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { id, limit = 10, offset = 0, }, context) {
+            try {
+                if (!context) {
+                    console.error("GetAllPost - Unauthenticated user");
+                    return { Error: "Unauth user" };
+                }
+                const { data: postData, error: postError } = yield supabaseClient_1.supabase
+                    .from("post")
+                    .select("id, postImage, caption, tagedUserId, createdBy, created_at, category, postTitle")
+                    .order("created_at", { ascending: false })
+                    .range(offset, offset + limit - 1);
+                if (postError) {
+                    console.error("GetAllPost - Failed to fetch posts:", postError.message);
+                    return { Error: postError.message };
+                }
+                if (postData) {
+                    const enrichedPosts = [];
+                    for (const post of postData) {
+                        const { data: creatorData, error: creatorError } = yield supabaseClient_1.supabase
+                            .from("socialix")
+                            .select("id, username, profile")
+                            .eq("id", post.createdBy)
+                            .single();
+                        if (creatorError) {
+                            console.error("GetAllPost - Failed to get creator details:", creatorError.message);
+                            continue;
+                        }
+                        const postedBy = {
+                            id: creatorData.id,
+                            username: creatorData.username,
+                            profile: creatorData.profile,
+                        };
+                        if (!post.tagedUserId) {
+                            enrichedPosts.push(Object.assign(Object.assign({}, post), { postedBy, tagedUsers: [] }));
+                            continue;
+                        }
+                        const tagedUserIds = post.tagedUserId.split(",");
+                        const { data: taggedUsersData, error: taggedUserError } = yield supabaseClient_1.supabase
+                            .from("socialix")
+                            .select("id, username, profile")
+                            .in("id", tagedUserIds);
+                        if (taggedUserError) {
+                            console.error("GetAllPost - Error fetching tagged user data:", taggedUserError.message);
+                            continue;
+                        }
+                        const tagedUserDetails = taggedUsersData.map((user) => ({
+                            tagedUserId: user.id,
+                            tagedUserName: user.username,
+                        }));
+                        enrichedPosts.push(Object.assign(Object.assign({}, post), { postedBy, tagedUsers: tagedUserDetails }));
+                    }
+                    return enrichedPosts;
+                }
+            }
+            catch (error) {
+                console.error("GetAllPost - Error occurred:", error);
+            }
+        })
     },
     Mutation: {
+        verifyOtp: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { otp }) {
+            try {
+                const isVlaid = sendOtp_1.default.validateOtp(otp);
+                if (isVlaid) {
+                    return { message: "OTP verified successfully", isCreated: true };
+                }
+                else {
+                    return { message: "Invalid OTP", isCreated: false };
+                }
+            }
+            catch (error) {
+                console.error("Error while verifying OTP:", error);
+            }
+        }),
+        resetPassword: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { newPassword }) {
+            try {
+                const hashedPassword = yield hashPassword(newPassword);
+                const email = sendOtp_1.default.getEmail();
+                console.log("EMAIL", email);
+                const { data, error } = yield supabaseClient_1.supabase
+                    .from("socialix")
+                    .update({ password: hashedPassword })
+                    .eq("email", email)
+                    .select('email')
+                    .single();
+                if (error) {
+                    console.error("Error while resetting password:", error);
+                    return { message: "Failed to reset password", isCreated: false };
+                }
+                if (data) {
+                    return { message: "Password reset successfully", isCreated: true };
+                }
+            }
+            catch (error) {
+                console.error(error);
+            }
+        }),
+        SendOtp: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { email }) {
+            try {
+                console.log("EMAIL");
+                const { data, error } = yield supabaseClient_1.supabase
+                    .from("socialix")
+                    .select("email")
+                    .eq("email", email)
+                    .single();
+                if (error) {
+                    console.error("SendOtp - Error fetching user data:", error.message);
+                    return { message: "Failed to send OTP", isSent: false };
+                }
+                if (data) {
+                    yield sendOtp_1.default.sendOtpForAuthentication(email);
+                    return { message: "Sent OTP Successfully", isSent: true };
+                }
+            }
+            catch (error) {
+                console.error("SendOtp - Error sending OTP:", error);
+            }
+        }),
         loginWithGoogle: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { code }) {
             try {
                 const decoded = (0, jwt_decode_1.jwtDecode)(code);
@@ -413,8 +541,24 @@ exports.resolvers = {
                 return { Error: "Failed to login with Google." };
             }
         }),
-        createUser: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { username, email, password }) {
+        createUser: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { username, email, password, }) {
             try {
+                const { data: UserExist, error: UserExistError } = yield supabaseClient_1.supabase
+                    .from("socialix")
+                    .select("username, email")
+                    .eq("username", username)
+                    .eq("email", email)
+                    .single();
+                if (UserExistError) {
+                    console.error("createUser - Error fetching user data:", UserExistError.message);
+                    return { error: UserExistError.message };
+                }
+                if (UserExist) {
+                    return {
+                        message: "username or email already in use",
+                        isCreated: false,
+                    };
+                }
                 const hashedPassword = yield hashPassword(password);
                 const { data, error } = yield supabaseClient_1.supabase
                     .from("socialix")
@@ -469,7 +613,7 @@ exports.resolvers = {
                 return { error: "Failed to login" };
             }
         }),
-        uploadFile: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { file, caption, postTitle, category, taggedUserIds }, context) {
+        uploadFile: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { file, caption, postTitle, category, taggedUserIds, }, context) {
             try {
                 // Check if caption is provided
                 if (!caption || caption.trim() === "") {
@@ -538,7 +682,6 @@ exports.resolvers = {
                     : [];
                 // Check if the user is already following the target user
                 if (following.includes(userId)) {
-                    console.log("FollowUser - Already following the user.");
                     return {
                         isFollowed: true,
                         message: "Already Following",
@@ -640,7 +783,9 @@ exports.resolvers = {
                     .single();
                 if (followerError) {
                     console.error("UnFollowUser - Error while getting follower data:", followerError.message);
-                    return { error: `Error while getting follower user data - UnFollowUser Mutation: ${followerError.message}` };
+                    return {
+                        error: `Error while getting follower user data - UnFollowUser Mutation: ${followerError.message}`,
+                    };
                 }
                 if (follower) {
                     // Get the followers list and remove the context.id (current user)

@@ -76,6 +76,7 @@ type Post {
   }
 
 type Query {
+  GetAllPost(limit: Int, offset: Int): [Post]
   GetBasicUserDetails: BasicUser
   GetUserProfile(limit: Int, offset: Int): UserProfile
   GetPost(limit: Int, offset: Int): [Post]
@@ -137,7 +138,6 @@ export const resolvers = {
         return [];
       }
     },
-
     GetUserProfile: async (
       _: any,
       {
@@ -254,7 +254,6 @@ export const resolvers = {
         return { err };
       }
     },
-
     GetUserProfileById: async (
       _: any,
       {
@@ -383,7 +382,6 @@ export const resolvers = {
         console.error("GetUserProfileById - Error occurred:", err);
       }
     },
-
     GetPost: async (
       _: any,
       {
@@ -414,6 +412,7 @@ export const resolvers = {
         }
 
         if (!userData.following) {
+          console.log("GetPost - No following list found");
           return { postData: [] };
         }
 
@@ -441,6 +440,7 @@ export const resolvers = {
         }
 
         if (postData) {
+          console.log("POST DATA",postData)
           const enrichedPosts = [];
           for (const post of postData) {
             const { data: creatorData, error: creatorError } = await supabase
@@ -505,11 +505,103 @@ export const resolvers = {
         console.error("GetPost - Error occurred:", err);
       }
     },
+    GetAllPost: async (  _: any,
+      {
+        id,
+        limit = 10,
+        offset = 0,
+      }: { id: string; limit: number; offset: number },
+      context: any
+    ) => {
+      try {
+        if (!context) {
+          console.error("GetAllPost - Unauthenticated user");
+          return { Error: "Unauth user" };
+        }
+
+        const { data: postData, error: postError } = await supabase
+          .from("post")
+          .select(
+            "id, postImage, caption, tagedUserId, createdBy, created_at, category, postTitle"
+          )
+          .order("created_at", { ascending: false })
+          .range(offset, offset + limit - 1);
+
+        if (postError) {
+          console.error("GetAllPost - Failed to fetch posts:", postError.message);
+          return { Error: postError.message };
+        }
+
+        if (postData) {
+          const enrichedPosts = [];
+          for (const post of postData) {
+            const { data: creatorData, error: creatorError } = await supabase
+              .from("socialix")
+              .select("id, username, profile")
+              .eq("id", post.createdBy)
+              .single();
+
+            if (creatorError) {
+              console.error(
+                "GetAllPost - Failed to get creator details:",
+                creatorError.message
+              );
+              continue;
+            }
+
+            const postedBy = {
+              id: creatorData.id,
+              username: creatorData.username,
+              profile: creatorData.profile,
+            };
+
+            if (!post.tagedUserId) {
+              enrichedPosts.push({
+                ...post,
+                postedBy,
+                tagedUsers: [],
+              });
+              continue;
+            }
+
+            const tagedUserIds = post.tagedUserId.split(",");
+
+            const { data: taggedUsersData, error: taggedUserError } =
+              await supabase
+                .from("socialix")
+                .select("id, username, profile")
+                .in("id", tagedUserIds);
+
+            if (taggedUserError) {
+              console.error(
+                "GetAllPost - Error fetching tagged user data:",
+                taggedUserError.message
+              );
+              continue;
+            }
+
+            const tagedUserDetails = taggedUsersData.map((user) => ({
+              tagedUserId: user.id,
+              tagedUserName: user.username,
+            }));
+
+            enrichedPosts.push({
+              ...post,
+              postedBy,
+              tagedUsers: tagedUserDetails,
+            });
+          }
+          return enrichedPosts;
+        }
+      }catch (error) {
+        console.error("GetAllPost - Error occurred:", error);
+      }
+    }
   },
   Mutation: {
     verifyOtp: async (_: any, { otp }: { otp: string }) => {
       try {
-        const isVlaid = sendOtp.validateOtp(sendOtp.getOtp() as string, otp);
+        const isVlaid = sendOtp.validateOtp(otp);
         if (isVlaid) {
           return { message: "OTP verified successfully", isCreated: true };
         } else {
@@ -530,7 +622,8 @@ export const resolvers = {
         const { data, error } = await supabase
           .from("socialix")
           .update({ password: hashedPassword })
-          .eq("id", email)
+          .eq("email", email)
+          .select('email')
           .single();
           if(error){
             console.error("Error while resetting password:", error);
@@ -539,7 +632,9 @@ export const resolvers = {
           if(data){
             return { message: "Password reset successfully", isCreated: true };
           }
-      } catch (error) {}
+      } catch (error) {
+        console.error(error)
+      }
     },
     SendOtp: async (_: any, { email }: { email: string }) => {
       try {
@@ -605,7 +700,6 @@ export const resolvers = {
         return { Error: "Failed to login with Google." };
       }
     },
-
     createUser: async (
       _: any,
       {
@@ -656,7 +750,6 @@ export const resolvers = {
         return { error: "Failed to create user" };
       }
     },
-
     loginUser: async (
       _: any,
       { email, password }: { email: string; password: string }
@@ -704,7 +797,6 @@ export const resolvers = {
         return { error: "Failed to login" };
       }
     },
-
     uploadFile: async (
       _: any,
       {
@@ -763,7 +855,6 @@ export const resolvers = {
         return { error: "Failed to upload file." };
       }
     },
-
     FollowUser: async (
       _: any,
       { userId }: { userId: string },
@@ -881,7 +972,6 @@ export const resolvers = {
         return { error: "Failed to follow user." };
       }
     },
-
     UnFollowUser: async (
       _: any,
       { userId }: { userId: string },
@@ -995,7 +1085,6 @@ export const resolvers = {
         return { error: "Error occurred while unfollowing user" };
       }
     },
-
     searchUsersByLetters: async (_: any, { letter }: { letter: String }) => {
       try {
         // Query Supabase for users whose username starts with the given letter
