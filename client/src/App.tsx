@@ -56,7 +56,7 @@ const AppContent: React.FC = () => {
     <div className='grid h-screen w-screen overflow-hidden'>
       {/* Conditionally render Navbar */}
       {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
-      <div className='app-scroll-div grid h-full w-screen overflow-y-scroll'>
+      <div className='app-scroll-div grid h-80vh w-screen overflow-y-scroll'>
         <Routes>
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.CREATE} element={<CreatePost />} />

@@ -10,6 +10,9 @@ export default {
         "49vw": "49vw", 
         "50vw": "50vw", 
       },
+      height:{
+        "80vh": "80vh"
+      },
     },
   },
   plugins: [],
