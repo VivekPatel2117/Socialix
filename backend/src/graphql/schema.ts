@@ -16,7 +16,7 @@ async function hashPassword(plainPassword: string) {
 // Define type definitions
 export const typeDefs = gql`
   type User {
-  id: ID!
+  id: ID
   profile: String
   username: String!
   password: String!
@@ -618,7 +618,6 @@ export const resolvers = {
       try {
         const hashedPassword = await hashPassword(newPassword);
         const email = sendOtp.getEmail();
-        console.log("EMAIL", email);
         const { data, error } = await supabase
           .from("socialix")
           .update({ password: hashedPassword })
