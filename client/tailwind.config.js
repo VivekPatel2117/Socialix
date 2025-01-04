@@ -11,7 +11,7 @@ export default {
         "50vw": "50vw", 
       },
       height:{
-        "80vh": "80vh"
+        "80vh": "80dvh"
       },
     },
   },
