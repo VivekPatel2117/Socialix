@@ -34,96 +34,107 @@ function hashPassword(plainPassword) {
 // Define type definitions
 exports.typeDefs = (0, graphql_tag_1.gql) `
   type User {
-  id: ID!
-  profile: String
-  username: String!
-  password: String!
-  email: String!
-  followers: String
-  following: String
-  token: String
-}
-
-type UserProfile {
-  user: User
-  isFollowedByLoggedUser: Boolean
-  postData: [Post]
-}
-
-type BasicUser {
-  id: ID!
-  username: String!
-  profile: String
-}
-
-type UploadResponse {
-  message: String!
-  isUploaded: Boolean!
-  publicUrl: String
-}
-
-type CreateResponse {
-  message: String
-  isCreated: Boolean
-}
-
-type FollowResponse {
-  message: String
-  isFollowed: Boolean
-}
-
-type PostTag {
-  tagedUserId: String
-  tagedUserName: String
-}
-
-type Post {
-  id: ID
-  postImage: String
-  caption: String
-  createdBy: ID
-  tagedUsers: [PostTag]
-  postedBy: BasicUser
-  created_at: String
-  category: String
-  postTitle: String
-}
-  type OTP_Response {
-    message: String
-    isSent: Boolean  
+    id: ID
+    profile: String
+    username: String!
+    password: String!
+    email: String!
+    followers: String
+    following: String
+    token: String
   }
 
-type Query {
-  GetAllPost(limit: Int, offset: Int): [Post]
-  GetBasicUserDetails: BasicUser
-  GetUserProfile(limit: Int, offset: Int): UserProfile
-  GetPost(limit: Int, offset: Int): [Post]
-  GetUserProfileById(id: ID!, limit: Int, offset: Int): UserProfile
-}
+  type UserProfile {
+    user: User
+    isFollowedByLoggedUser: Boolean
+    postData: [Post]
+  }
 
-type Mutation {
-  verifyOtp(otp: String!): CreateResponse
-  resetPassword(newPassword: String!): CreateResponse
-  SendOtp(email: String!): OTP_Response
-  UnFollowUser(userId: ID!): FollowResponse
-  FollowUser(userId: ID!): FollowResponse
-  createUser(
+  type BasicUser {
+    id: ID!
     username: String!
-    email: String!
-    password: String!
-  ): CreateResponse
-  searchUsersByLetters(letter: String!): [BasicUser]
-  loginUser(email: String!, password: String!): User
-  loginWithGoogle(code: String!): User
-  uploadFile(
-    file: String
-    caption: String
-    postTitle: String
-    category: String!
-    taggedUserIds: [String]
-  ): UploadResponse
-}
+    profile: String
+  }
 
+  type UploadResponse {
+    message: String!
+    isUploaded: Boolean!
+    publicUrl: String
+  }
+
+  type CreateResponse {
+    message: String
+    isCreated: Boolean
+  }
+
+  type FollowResponse {
+    message: String
+    isFollowed: Boolean
+  }
+
+  type PostTag {
+    tagedUserId: String
+    tagedUserName: String
+  }
+
+  type Post {
+    id: ID
+    postImage: String
+    caption: String
+    createdBy: ID
+    tagedUsers: [PostTag]
+    postedBy: BasicUser
+    created_at: String
+    category: String
+    postTitle: String
+  }
+  type OTP_Response {
+    message: String
+    isSent: Boolean
+  }
+  type ProfileUpdateResponse {
+    success: Boolean
+    message: String
+    username: String
+    profile: String
+    email: String
+  }
+  type Query {
+    GetAllPost(limit: Int, offset: Int): [Post]
+    GetBasicUserDetails: BasicUser
+    GetUserProfile(limit: Int, offset: Int): UserProfile
+    GetPost(limit: Int, offset: Int): [Post]
+    GetUserProfileById(id: ID!, limit: Int, offset: Int): UserProfile
+  }
+
+  type Mutation {
+    profileUpdate(
+      profile: String
+      username: String
+      email: String
+    ): ProfileUpdateResponse
+    getProfileUpdateData: ProfileUpdateResponse
+    verifyOtp(otp: String!): CreateResponse
+    resetPassword(newPassword: String!): CreateResponse
+    SendOtp(email: String!): OTP_Response
+    UnFollowUser(userId: ID!): FollowResponse
+    FollowUser(userId: ID!): FollowResponse
+    createUser(
+      username: String!
+      email: String!
+      password: String!
+    ): CreateResponse
+    searchUsersByLetters(letter: String!): [BasicUser]
+    loginUser(email: String!, password: String!): User
+    loginWithGoogle(code: String!): User
+    uploadFile(
+      file: String
+      caption: String
+      postTitle: String
+      category: String!
+      taggedUserIds: [String]
+    ): UploadResponse
+  }
 `;
 // Define resolvers
 exports.resolvers = {
@@ -444,9 +455,79 @@ exports.resolvers = {
             catch (error) {
                 console.error("GetAllPost - Error occurred:", error);
             }
-        })
+        }),
     },
     Mutation: {
+        getProfileUpdateData: (_, __, context) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                const { data, error } = yield supabaseClient_1.supabase
+                    .from("socialix")
+                    .select("profile, email, username")
+                    .eq("id", context.id)
+                    .single();
+                if (error) {
+                    console.log(`Error occured while getting profile data - getProfileUpdateData: ${error}`);
+                    return {
+                        success: false,
+                        message: "Error occured while getting profile data",
+                    };
+                }
+                if (data) {
+                    return {
+                        success: true,
+                        message: "Profile updated successfully.",
+                        username: data.username,
+                        profile: data.profile,
+                        email: data.email,
+                    };
+                }
+            }
+            catch (error) {
+                console.log(`Error occured while getting profile data - getProfileUpdateData: ${error}`);
+                return {
+                    success: false,
+                    message: "Internal Error occured while getting profile data",
+                };
+            }
+        }),
+        profileUpdate: (_1, _a, context_1) => __awaiter(void 0, [_1, _a, context_1], void 0, function* (_, { profile, username, email, }, context) {
+            try {
+                const { data, error } = yield supabaseClient_1.supabase
+                    .from("socialix")
+                    .update({
+                    profile,
+                    username,
+                    email,
+                })
+                    .eq("id", context.id)
+                    .select("profile, username, email")
+                    .single();
+                // Handle response
+                if (error) {
+                    console.error(`Failed to update profile - profileUpdate: ${error.message}`);
+                    return {
+                        success: false,
+                        message: "Failed to update profile",
+                    };
+                }
+                if (data) {
+                    return {
+                        success: true,
+                        message: "Profile updated successfully.",
+                        username: data.username,
+                        profile: data.profile,
+                        email: data.email,
+                    };
+                }
+            }
+            catch (error) {
+                console.error(`Error occured while updating profile - profileUpdate: ${error}`);
+                return {
+                    success: false,
+                    message: "Error occured while updating profile",
+                };
+            }
+        }),
         verifyOtp: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { otp }) {
             try {
                 const isVlaid = sendOtp_1.default.validateOtp(otp);
@@ -465,12 +546,11 @@ exports.resolvers = {
             try {
                 const hashedPassword = yield hashPassword(newPassword);
                 const email = sendOtp_1.default.getEmail();
-                console.log("EMAIL", email);
                 const { data, error } = yield supabaseClient_1.supabase
                     .from("socialix")
                     .update({ password: hashedPassword })
                     .eq("email", email)
-                    .select('email')
+                    .select("email")
                     .single();
                 if (error) {
                     console.error("Error while resetting password:", error);
@@ -543,16 +623,12 @@ exports.resolvers = {
         }),
         createUser: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { username, email, password, }) {
             try {
-                const { data: UserExist, error: UserExistError } = yield supabaseClient_1.supabase
+                const { data: UserExist } = yield supabaseClient_1.supabase
                     .from("socialix")
                     .select("username, email")
                     .eq("username", username)
                     .eq("email", email)
                     .single();
-                if (UserExistError) {
-                    console.error("createUser - Error fetching user data:", UserExistError.message);
-                    return { error: UserExistError.message };
-                }
                 if (UserExist) {
                     return {
                         message: "username or email already in use",

@@ -145,6 +145,36 @@ export declare const resolvers: {
         }[] | undefined>;
     };
     Mutation: {
+        getProfileUpdateData: (_: any, __: any, context: any) => Promise<{
+            success: boolean;
+            message: string;
+            username?: undefined;
+            profile?: undefined;
+            email?: undefined;
+        } | {
+            success: boolean;
+            message: string;
+            username: any;
+            profile: any;
+            email: any;
+        } | undefined>;
+        profileUpdate: (_: any, { profile, username, email, }: {
+            profile: string;
+            username: string;
+            email: string;
+        }, context: any) => Promise<{
+            success: boolean;
+            message: string;
+            username?: undefined;
+            profile?: undefined;
+            email?: undefined;
+        } | {
+            success: boolean;
+            message: string;
+            username: any;
+            profile: any;
+            email: any;
+        } | undefined>;
         verifyOtp: (_: any, { otp }: {
             otp: string;
         }) => Promise<{
@@ -182,13 +212,13 @@ export declare const resolvers: {
             email: string;
             password: string;
         }) => Promise<{
-            error: string;
-            message?: undefined;
-            isCreated?: undefined;
-        } | {
             message: string;
             isCreated: boolean;
             error?: undefined;
+        } | {
+            error: string;
+            message?: undefined;
+            isCreated?: undefined;
         } | undefined>;
         loginUser: (_: any, { email, password }: {
             email: string;
