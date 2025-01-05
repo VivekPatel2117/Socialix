@@ -74,7 +74,7 @@ export const typeDefs = gql`
     message: String
     isSent: Boolean
   }
-  type Profile_Update_Respnonse {
+  type ProfileUpdateResponse {
     success: Boolean
     message: String
     username: String
@@ -93,9 +93,9 @@ export const typeDefs = gql`
     profileUpdate(
       profile: String
       username: String
-      username: String
-    ): Profile_Update_Respnonse
-    getProfileUpdateData: Profile_Update_Respnonse
+      email: String
+    ): ProfileUpdateResponse
+    getProfileUpdateData: ProfileUpdateResponse
     verifyOtp(otp: String!): CreateResponse
     resetPassword(newPassword: String!): CreateResponse
     SendOtp(email: String!): OTP_Response
@@ -614,6 +614,41 @@ export const resolvers = {
     },
   },
   Mutation: {
+    getProfileUpdateData: async (_: any, __: any, context: any) => {
+      try {
+        const { data, error } = await supabase
+          .from("socialix")
+          .select("profile, email, username")
+          .eq("id", context.id)
+          .single();
+        if (error) {
+          console.log(
+            `Error occured while getting profile data - getProfileUpdateData: ${error}`
+          );
+          return {
+            success: false,
+            message: "Error occured while getting profile data",
+          };
+        }
+        if (data) {
+          return {
+            success: true,
+            message: "Profile updated successfully.",
+            username: data.username,
+            profile: data.profile,
+            email: data.email,
+          };
+        }
+      } catch (error) {
+        console.log(
+          `Error occured while getting profile data - getProfileUpdateData: ${error}`
+        );
+        return {
+          success: false,
+          message: "Internal Error occured while getting profile data",
+        };
+      }
+    },
     profileUpdate: async (
       _: any,
       {
@@ -631,13 +666,19 @@ export const resolvers = {
             username,
             email,
           })
-          .eq("id", context.user.id)
+          .eq("id", context.id)
           .select("profile, username, email")
           .single();
 
         // Handle response
         if (error) {
-          console.error(`Failed to update profile: ${error.message}`);
+          console.error(
+            `Failed to update profile - profileUpdate: ${error.message}`
+          );
+          return {
+            success: false,
+            message: "Failed to update profile",
+          };
         }
         if (data) {
           return {
@@ -649,7 +690,13 @@ export const resolvers = {
           };
         }
       } catch (error) {
-        console.error(`Error occured while updating profile - ${error}`);
+        console.error(
+          `Error occured while updating profile - profileUpdate: ${error}`
+        );
+        return {
+          success: false,
+          message: "Error occured while updating profile",
+        };
       }
     },
     verifyOtp: async (_: any, { otp }: { otp: string }) => {
