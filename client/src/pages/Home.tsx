@@ -3,7 +3,6 @@ import Container from '@mui/material/Container';
 import MainContent from '../components/MainContent';
 import { gql, useLazyQuery } from '@apollo/client';
 import SkeletonLoader from '../components/SkeletonLoader';
-import Error from './Error';
 import { Link } from 'react-router-dom';
 const Home: React.FC = () => {
    const [offset, setOffset] = useState(0);
@@ -55,7 +54,7 @@ const Home: React.FC = () => {
     }>;
   }
 
-  const [fetchPosts, { loading, error, data }] = useLazyQuery<PostData>(GET_POST_QUERY,{
+  const [fetchPosts, { loading, data }] = useLazyQuery<PostData>(GET_POST_QUERY,{
     variables:{limit,offset}
   });
   const [posts, setPosts] = useState<any[]>([]); 
@@ -72,12 +71,6 @@ const Home: React.FC = () => {
       <div className='grid justify-center items-center'>
         <SkeletonLoader/>
       </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <Error/>
     )
   }
 
@@ -100,7 +93,7 @@ const Home: React.FC = () => {
 
   // Fallback in case nothing is returned
   return <p className='text-center'>No Post by your following User <br />
-   <Link to={'/explore'}>Click Here!</Link> and explore all post by users</p>;
+   <Link className='text-blue-300' to={'/explore'}>Click Here!</Link> and explore all post by users</p>;
 };
 
 export default Home;

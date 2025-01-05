@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { gql, useMutation, useLazyQuery } from "@apollo/client";
 import { Skeleton, Box, Grid, Typography } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import StringAvatar from "../components/StringAvatar";
 import MainContent from "../components/MainContent";
 import { toast } from "react-toastify";
 import Error from "./Error";
+import EditIcon from "@mui/icons-material/Edit";
 // GraphQL Query
 const GET_USER_PROFILE = gql`
   query GetUserProfile($limit: Int, $offset: Int) {
@@ -136,23 +137,23 @@ interface ProfileData {
 }
 const Profile: React.FC = () => {
   const [offset, setOffset] = useState(0);
+  const navigate = useNavigate();
   const limit = 10;
   const [isDyanmicProfile, setIsDyanmicProfile] = useState<Boolean>();
   const { id } = useParams();
-  const [followUser, { data: FollowData }] = useMutation(
-    FOLLOW_USER,
+  const [followUser, { data: FollowData }] = useMutation(FOLLOW_USER, {
+    onCompleted: () => fetchPosts(),
+  });
+  const [UnfollowUser, { data: UnFollowData }] = useMutation(
+    UNFOLLOW_USER_MUTATION,
     {
       onCompleted: () => fetchPosts(),
     }
   );
-  const [UnfollowUser, { data: UnFollowData }] =
-    useMutation(UNFOLLOW_USER_MUTATION, {
-      onCompleted: () => fetchPosts(),
-    });
   const [isFollowed, setIsFollowed] = useState(false);
   const [fetchPosts, { loading, error, data }] = useLazyQuery<ProfileData>(
     id ? USER_PROFILE_BY_ID : GET_USER_PROFILE,
-    {...(id && { variables: { id, limit, offset }}),}
+    { ...(id && { variables: { id, limit, offset } }) }
   );
   const handleFollow = () => {
     followUser({ variables: { userId: id } });
@@ -163,10 +164,9 @@ const Profile: React.FC = () => {
   const [profileData, setProfileData] = useState<
     ProfileData["GetUserProfile"] | ProfileData["GetUserProfileById"] | null
   >(null);
-  
+
   useEffect(() => {
-    if (id && id !== localStorage.getItem('userId')) {
-      console.log("HELLO")
+    if (id && id !== localStorage.getItem("userId")) {
       setIsDyanmicProfile(true);
       fetchPosts();
     } else {
@@ -287,9 +287,7 @@ const Profile: React.FC = () => {
     );
   if (error) {
     toast.error("Error fetching user details");
-    return (
-      <Error />
-    )
+    return <Error />;
   }
 
   if (profileData) {
@@ -331,8 +329,9 @@ const Profile: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <h2 className="text-2xl font-semibold">
-                  {profileData.user.username}
+                <h2 className="text-2xl font-semibold flex items-center gap-4 cursor-pointer">
+                  {profileData.user.username}{" "}
+                  <EditIcon onClick={() => navigate("/profileSettings")} />
                 </h2>
               )}
               <div className="flex gap-6 mt-2">

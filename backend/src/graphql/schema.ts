@@ -16,96 +16,107 @@ async function hashPassword(plainPassword: string) {
 // Define type definitions
 export const typeDefs = gql`
   type User {
-  id: ID
-  profile: String
-  username: String!
-  password: String!
-  email: String!
-  followers: String
-  following: String
-  token: String
-}
-
-type UserProfile {
-  user: User
-  isFollowedByLoggedUser: Boolean
-  postData: [Post]
-}
-
-type BasicUser {
-  id: ID!
-  username: String!
-  profile: String
-}
-
-type UploadResponse {
-  message: String!
-  isUploaded: Boolean!
-  publicUrl: String
-}
-
-type CreateResponse {
-  message: String
-  isCreated: Boolean
-}
-
-type FollowResponse {
-  message: String
-  isFollowed: Boolean
-}
-
-type PostTag {
-  tagedUserId: String
-  tagedUserName: String
-}
-
-type Post {
-  id: ID
-  postImage: String
-  caption: String
-  createdBy: ID
-  tagedUsers: [PostTag]
-  postedBy: BasicUser
-  created_at: String
-  category: String
-  postTitle: String
-}
-  type OTP_Response {
-    message: String
-    isSent: Boolean  
+    id: ID
+    profile: String
+    username: String!
+    password: String!
+    email: String!
+    followers: String
+    following: String
+    token: String
   }
 
-type Query {
-  GetAllPost(limit: Int, offset: Int): [Post]
-  GetBasicUserDetails: BasicUser
-  GetUserProfile(limit: Int, offset: Int): UserProfile
-  GetPost(limit: Int, offset: Int): [Post]
-  GetUserProfileById(id: ID!, limit: Int, offset: Int): UserProfile
-}
+  type UserProfile {
+    user: User
+    isFollowedByLoggedUser: Boolean
+    postData: [Post]
+  }
 
-type Mutation {
-  verifyOtp(otp: String!): CreateResponse
-  resetPassword(newPassword: String!): CreateResponse
-  SendOtp(email: String!): OTP_Response
-  UnFollowUser(userId: ID!): FollowResponse
-  FollowUser(userId: ID!): FollowResponse
-  createUser(
+  type BasicUser {
+    id: ID!
     username: String!
-    email: String!
-    password: String!
-  ): CreateResponse
-  searchUsersByLetters(letter: String!): [BasicUser]
-  loginUser(email: String!, password: String!): User
-  loginWithGoogle(code: String!): User
-  uploadFile(
-    file: String
-    caption: String
-    postTitle: String
-    category: String!
-    taggedUserIds: [String]
-  ): UploadResponse
-}
+    profile: String
+  }
 
+  type UploadResponse {
+    message: String!
+    isUploaded: Boolean!
+    publicUrl: String
+  }
+
+  type CreateResponse {
+    message: String
+    isCreated: Boolean
+  }
+
+  type FollowResponse {
+    message: String
+    isFollowed: Boolean
+  }
+
+  type PostTag {
+    tagedUserId: String
+    tagedUserName: String
+  }
+
+  type Post {
+    id: ID
+    postImage: String
+    caption: String
+    createdBy: ID
+    tagedUsers: [PostTag]
+    postedBy: BasicUser
+    created_at: String
+    category: String
+    postTitle: String
+  }
+  type OTP_Response {
+    message: String
+    isSent: Boolean
+  }
+  type Profile_Update_Respnonse {
+    success: Boolean
+    message: String
+    username: String
+    profile: String
+    email: String
+  }
+  type Query {
+    GetAllPost(limit: Int, offset: Int): [Post]
+    GetBasicUserDetails: BasicUser
+    GetUserProfile(limit: Int, offset: Int): UserProfile
+    GetPost(limit: Int, offset: Int): [Post]
+    GetUserProfileById(id: ID!, limit: Int, offset: Int): UserProfile
+  }
+
+  type Mutation {
+    profileUpdate(
+      profile: String
+      username: String
+      username: String
+    ): Profile_Update_Respnonse
+    getProfileUpdateData: Profile_Update_Respnonse
+    verifyOtp(otp: String!): CreateResponse
+    resetPassword(newPassword: String!): CreateResponse
+    SendOtp(email: String!): OTP_Response
+    UnFollowUser(userId: ID!): FollowResponse
+    FollowUser(userId: ID!): FollowResponse
+    createUser(
+      username: String!
+      email: String!
+      password: String!
+    ): CreateResponse
+    searchUsersByLetters(letter: String!): [BasicUser]
+    loginUser(email: String!, password: String!): User
+    loginWithGoogle(code: String!): User
+    uploadFile(
+      file: String
+      caption: String
+      postTitle: String
+      category: String!
+      taggedUserIds: [String]
+    ): UploadResponse
+  }
 `;
 
 // Define resolvers
@@ -440,7 +451,7 @@ export const resolvers = {
         }
 
         if (postData) {
-          console.log("POST DATA",postData)
+          console.log("POST DATA", postData);
           const enrichedPosts = [];
           for (const post of postData) {
             const { data: creatorData, error: creatorError } = await supabase
@@ -505,7 +516,8 @@ export const resolvers = {
         console.error("GetPost - Error occurred:", err);
       }
     },
-    GetAllPost: async (  _: any,
+    GetAllPost: async (
+      _: any,
       {
         id,
         limit = 10,
@@ -528,7 +540,10 @@ export const resolvers = {
           .range(offset, offset + limit - 1);
 
         if (postError) {
-          console.error("GetAllPost - Failed to fetch posts:", postError.message);
+          console.error(
+            "GetAllPost - Failed to fetch posts:",
+            postError.message
+          );
           return { Error: postError.message };
         }
 
@@ -593,12 +608,50 @@ export const resolvers = {
           }
           return enrichedPosts;
         }
-      }catch (error) {
+      } catch (error) {
         console.error("GetAllPost - Error occurred:", error);
       }
-    }
+    },
   },
   Mutation: {
+    profileUpdate: async (
+      _: any,
+      {
+        profile,
+        username,
+        email,
+      }: { profile: string; username: string; email: string },
+      context: any
+    ) => {
+      try {
+        const { data, error } = await supabase
+          .from("socialix")
+          .update({
+            profile,
+            username,
+            email,
+          })
+          .eq("id", context.user.id)
+          .select("profile, username, email")
+          .single();
+
+        // Handle response
+        if (error) {
+          console.error(`Failed to update profile: ${error.message}`);
+        }
+        if (data) {
+          return {
+            success: true,
+            message: "Profile updated successfully.",
+            username: data.username,
+            profile: data.profile,
+            email: data.email,
+          };
+        }
+      } catch (error) {
+        console.error(`Error occured while updating profile - ${error}`);
+      }
+    },
     verifyOtp: async (_: any, { otp }: { otp: string }) => {
       try {
         const isVlaid = sendOtp.validateOtp(otp);
@@ -611,10 +664,7 @@ export const resolvers = {
         console.error("Error while verifying OTP:", error);
       }
     },
-    resetPassword: async (
-      _: any,
-      { newPassword }: { newPassword: string }
-    ) => {
+    resetPassword: async (_: any, { newPassword }: { newPassword: string }) => {
       try {
         const hashedPassword = await hashPassword(newPassword);
         const email = sendOtp.getEmail();
@@ -622,17 +672,17 @@ export const resolvers = {
           .from("socialix")
           .update({ password: hashedPassword })
           .eq("email", email)
-          .select('email')
+          .select("email")
           .single();
-          if(error){
-            console.error("Error while resetting password:", error);
-            return { message: "Failed to reset password", isCreated: false };
-          }
-          if(data){
-            return { message: "Password reset successfully", isCreated: true };
-          }
+        if (error) {
+          console.error("Error while resetting password:", error);
+          return { message: "Failed to reset password", isCreated: false };
+        }
+        if (data) {
+          return { message: "Password reset successfully", isCreated: true };
+        }
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     },
     SendOtp: async (_: any, { email }: { email: string }) => {

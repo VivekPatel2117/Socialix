@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,29 +11,30 @@
     <script>
       // Define routes and corresponding titles
       const ROUTES = {
-        '/home': 'Home',
-        '/signup': 'Sign Up',
-        '/profile': 'Profile',
-        '/userProfile/:id': 'User Profile',
-        '/create': 'Create Post',
-        '/logout': 'Logout',
-        '/signin': 'Sign In',
-        '/reset': 'Reset Password',
-        '*': 'Not Found',
-        '/': 'Welcome to Socialix',
+        "/home": "Home",
+        "/signup": "Sign Up",
+        "/profile": "Profile",
+        "/userProfile/:id": "User Profile",
+        "/create": "Create Post",
+        "/logout": "Logout",
+        "/signin": "Sign In",
+        "/reset": "Reset Password",
+        "*": "Not Found",
+        "/profileSettings": "Settings",
+        "/": "Welcome to Socialix",
       };
 
       // Function to match route with a dynamic segment (e.g., /userProfile/:id)
       const getRouteTitle = (path) => {
         for (const route in ROUTES) {
-          if (route.includes(':')) {
+          if (route.includes(":")) {
             const dynamicRoute = new RegExp(
-              `^${route.replace(/:\w+/g, '[^/]+')}$`
+              `^${route.replace(/:\w+/g, "[^/]+")}$`
             );
             if (dynamicRoute.test(path)) return ROUTES[route];
           }
         }
-        return ROUTES[path] || ROUTES['*'];
+        return ROUTES[path] || ROUTES["*"];
       };
 
       // Update the document title based on the current path
@@ -47,7 +48,7 @@
       updateTitle();
 
       // Handle SPA navigation (popstate event for back/forward buttons)
-      window.addEventListener('popstate', updateTitle);
+      window.addEventListener("popstate", updateTitle);
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

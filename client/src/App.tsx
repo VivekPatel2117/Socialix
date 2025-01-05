@@ -1,41 +1,48 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Signin from './components/sign-in/SignIn';
-import Home from './pages/Home';
-import NotFound from './pages/NotFound';
-import CreatePost from './pages/CreatePost';
-import Profile from './pages/Profile';
-import Logout from './pages/Logout';
-import SignUp from './components/sign-in/SignUp';
-import { GoogleOAuthProvider } from '@react-oauth/google';
-import { ToastContainer } from 'react-toastify';
-import { useEffect, useState } from 'react';
-import MoblieNav from './components/MoblieNav';
-import './App.css';
-import ResetPassword from './components/ResetPassword';
-import Landing from './pages/Landing';
-import Explore from './pages/Explore';
+import { Routes, Route, useLocation } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Signin from "./components/sign-in/SignIn";
+import Home from "./pages/Home";
+import NotFound from "./pages/NotFound";
+import CreatePost from "./pages/CreatePost";
+import Profile from "./pages/Profile";
+import Logout from "./pages/Logout";
+import SignUp from "./components/sign-in/SignUp";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ToastContainer } from "react-toastify";
+import { useEffect, useState } from "react";
+import MoblieNav from "./components/MoblieNav";
+import "./App.css";
+import ResetPassword from "./components/ResetPassword";
+import Landing from "./pages/Landing";
+import Explore from "./pages/Explore";
+import ProfileSettings from "./pages/ProfileSettings";
 
 // Route constants for better maintainability
 const ROUTES = {
-  HOME: '/home',
-  SIGNUP: '/signup',
-  PROFILE: '/profile',
-  USER_PROFILE: '/userProfile/:id',
-  CREATE: '/create',
-  LOGOUT: '/logout',
-  SIGNIN: '/signin',
-  RESET: '/reset',
-  NOT_FOUND: '*',
-  LANDING: '/',
-  EXPLORE: '/explore'
+  HOME: "/home",
+  SIGNUP: "/signup",
+  PROFILE: "/profile",
+  USER_PROFILE: "/userProfile/:id",
+  CREATE: "/create",
+  LOGOUT: "/logout",
+  SIGNIN: "/signin",
+  RESET: "/reset",
+  NOT_FOUND: "*",
+  LANDING: "/",
+  EXPLORE: "/explore",
+  SETTINGS: "/profileSettings",
 };
 
 const AppContent: React.FC = () => {
   const location = useLocation();
 
   // Define routes where the Navbar should not appear
-  const hideNavbarRoutes = [ROUTES.SIGNUP, ROUTES.SIGNIN, ROUTES.RESET, ROUTES.LANDING];
+  const hideNavbarRoutes = [
+    ROUTES.SIGNUP,
+    ROUTES.SIGNIN,
+    ROUTES.RESET,
+    ROUTES.LANDING,
+  ];
 
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
@@ -45,18 +52,18 @@ const AppContent: React.FC = () => {
     };
 
     handleResize(); // Initial check
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
   return (
-    <div className='grid h-dvh w-screen overflow-hidden'>
+    <div className="grid h-dvh w-screen overflow-hidden">
       {/* Conditionally render Navbar */}
       {!hideNavbarRoutes.includes(location.pathname) && <Navbar />}
-      <div className='app-scroll-div grid h-80dvh w-screen overflow-y-scroll'>
+      <div className="app-scroll-div grid h-80dvh w-screen overflow-y-scroll">
         <Routes>
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.CREATE} element={<CreatePost />} />
@@ -67,12 +74,15 @@ const AppContent: React.FC = () => {
           <Route path={ROUTES.PROFILE} element={<Profile />} />
           <Route path={ROUTES.USER_PROFILE} element={<Profile />} />
           <Route path={ROUTES.LOGOUT} element={<Logout />} />
+          <Route path={ROUTES.SETTINGS} element={<ProfileSettings />} />
           <Route path={ROUTES.RESET} element={<ResetPassword />} />
-          <Route path={ROUTES.EXPLORE} element={<Explore/>} />
+          <Route path={ROUTES.EXPLORE} element={<Explore />} />
         </Routes>
         <ToastContainer />
       </div>
-      {isMobile && !hideNavbarRoutes.includes(location.pathname) && <MoblieNav />}
+      {isMobile && !hideNavbarRoutes.includes(location.pathname) && (
+        <MoblieNav />
+      )}
     </div>
   );
 };
@@ -82,7 +92,7 @@ const App: React.FC = () => {
 
   return (
     <GoogleOAuthProvider clientId={clientId}>
-        <AppContent />
+      <AppContent />
     </GoogleOAuthProvider>
   );
 };
