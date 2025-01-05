@@ -9,6 +9,7 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { supabase } from "../supabase/supabase.ts";
+import Error from "./Error";
 
 const GET_PROFILE = gql`
   mutation getProfile {
@@ -118,7 +119,7 @@ const ProfileSettings = () => {
 
   if (error) {
     toast.error("Error occured while getting data");
-    return null;
+    return (<Error/>);
   }
 
   return (
