@@ -18,6 +18,7 @@ const GET_USER_PROFILE = gql`
         followers
         following
       }
+      postLength
       postData {
         id
         postImage
@@ -49,6 +50,7 @@ const USER_PROFILE_BY_ID = gql`
         followers
         following
       }
+        postLength
       isFollowedByLoggedUser
       postData {
         id
@@ -105,6 +107,7 @@ interface ProfileData {
       following: string;
       profile: string;
     };
+    postLength: number;
     postData: Array<{
       id: number;
       postImage: string;
@@ -123,6 +126,7 @@ interface ProfileData {
       following: string;
       profile: string;
     };
+    postLength: number;
     isFollowedByLoggedUser: boolean;
     postData: Array<{
       id: number;
@@ -150,6 +154,7 @@ const Profile: React.FC = () => {
       onCompleted: () => fetchPosts(),
     }
   );
+  const [hasMore, setHasMore] = useState(false);
   const [isFollowed, setIsFollowed] = useState(false);
   const [fetchPosts, { loading, error, data }] = useLazyQuery<ProfileData>(
     id ? USER_PROFILE_BY_ID : GET_USER_PROFILE,
@@ -191,29 +196,44 @@ const Profile: React.FC = () => {
     }
   }, [UnFollowData]);
   useEffect(() => {
-    fetchPosts();
+    if (
+      hasMore &&
+      profileData?.postLength &&
+      offset < profileData.postLength
+    ) {
+      fetchPosts({ variables: { id, limit, offset } });
+    }
   }, [offset, fetchPosts]);
   useEffect(() => {
     if (data) {
-      // Check if user profile exists and update `isFollowed`
       if (data.GetUserProfileById) {
         setIsFollowed(data.GetUserProfileById?.isFollowedByLoggedUser);
       }
-
-      // Append new profile data (if applicable)
       setProfileData((prev) => {
         if (data.GetUserProfile) {
-          return data.GetUserProfile;
+          setHasMore(data.GetUserProfile.postLength > offset ? true : false)
+          return {
+            ...prev,
+            ...data.GetUserProfile, // Merge the user profile details
+            postData: [...((prev && prev.postData) || []), ...(data.GetUserProfile.postData || [])], // Append posts
+          };
         }
         if (data.GetUserProfileById) {
-          return data.GetUserProfileById;
+          setHasMore(data?.GetUserProfileById.postLength > offset ? true : false)
+          return {
+            ...prev,
+            ...data.GetUserProfileById, // Merge the user profile details
+            postData: [...((prev?.postData) ?? []), ...(data.GetUserProfileById.postData || [])], // Append posts
+          };
         }
         return prev;
       });
     }
   }, [data]);
-
-  if (loading)
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+  if (loading && offset < 10)
     return (
       <Box sx={{ backgroundColor: "gray.100", minHeight: "100vh", p: 4 }}>
         <Box
@@ -285,6 +305,7 @@ const Profile: React.FC = () => {
         </Box>
       </Box>
     );
+    
   if (error) {
     toast.error("Error fetching user details");
     return <Error />;
@@ -292,7 +313,7 @@ const Profile: React.FC = () => {
 
   if (profileData) {
     return (
-      <div className="bg-gray-100 min-h-screen p-4">
+      <div className="p-4">
         {/* Profile Header */}
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center gap-6">
@@ -337,7 +358,9 @@ const Profile: React.FC = () => {
               <div className="flex gap-6 mt-2">
                 <div>
                   <span className="text-lg font-semibold">
-                    {profileData.postData ? profileData.postData.length : 0}
+                    {profileData.postData
+                      ? profileData.postLength
+                      : 0}
                   </span>{" "}
                   Posts
                 </div>
@@ -371,7 +394,7 @@ const Profile: React.FC = () => {
                 <MainContent
                   loading={loading}
                   setOffset={setOffset}
-                  hasMore={profileData?.postData?.length === limit}
+                  hasMore={hasMore}
                   posts={profileData.postData}
                 />
               </>

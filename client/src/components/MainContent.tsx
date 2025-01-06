@@ -98,34 +98,32 @@ const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMo
   }
   const observerRef = useRef<HTMLDivElement | null>(null);
 
-  // Intersection Observer logic
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          setOffset((prevOffset) => prevOffset + 10);
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (observerRef.current) {
-      observer.observe(observerRef.current);
+  const handleScroll = () => {
+    const div = document.getElementById("scroll");
+    if (!div || hasMore == false) return;
+    if (div.scrollTop + div.clientHeight >= div.scrollHeight - 300) {
+      setOffset((prevOffset) => prevOffset + 10);
     }
-
+  };
+  useEffect(() => {
+    const div = document.getElementById("scroll");
+      if (div) {
+        div.addEventListener("scroll", handleScroll);
+      }
     return () => {
-      if (observerRef.current) {
-        observer.unobserve(observerRef.current);
+      if (div) {
+        console.log("removing")
+        div.removeEventListener("scroll", handleScroll);
       }
     };
   }, [hasMore, loading, setOffset]);
 
   return (
-    <Box sx={{ display: 'grid',width:isMobile ? '90vw':'60vw', gap: 3 }}>
+    <Box id="scroll" sx={{ display: 'grid',width:isMobile ? '90vw':'60vw', gap: 3, height:"70vh",overflowY:"scroll" }}>
       {posts.map((post, index) => {
         const isLastPost = index === posts.length - 2;
       return (
-        <div ref={isLastPost ? observerRef : null} key={post.id || index}>
+        <div  ref={isLastPost ? observerRef : null} key={post.id || index}>
         <StyledCard key={post.id || index} variant="outlined">
           {post.postImage && (
           <CardMedia
