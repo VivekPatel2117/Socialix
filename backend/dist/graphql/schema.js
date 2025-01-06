@@ -587,7 +587,6 @@ exports.resolvers = {
         }),
         SendOtp: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { email }) {
             try {
-                console.log("EMAIL");
                 const { data, error } = yield supabaseClient_1.supabase
                     .from("socialix")
                     .select("email")

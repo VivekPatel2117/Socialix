@@ -753,7 +753,6 @@ export const resolvers = {
     },
     SendOtp: async (_: any, { email }: { email: string }) => {
       try {
-        console.log("EMAIL");
         const { data, error } = await supabase
           .from("socialix")
           .select("email")
