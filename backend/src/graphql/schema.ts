@@ -30,6 +30,7 @@ export const typeDefs = gql`
     user: User
     isFollowedByLoggedUser: Boolean
     postData: [Post]
+    postLength: Int
   }
 
   type BasicUser {
@@ -70,6 +71,10 @@ export const typeDefs = gql`
     category: String
     postTitle: String
   }
+  type GetPostResponse {
+    postLength: Int
+    Post: [Post]
+  }
   type OTP_Response {
     message: String
     isSent: Boolean
@@ -82,10 +87,10 @@ export const typeDefs = gql`
     email: String
   }
   type Query {
-    GetAllPost(limit: Int, offset: Int): [Post]
+    GetAllPost(limit: Int, offset: Int): GetPostResponse
     GetBasicUserDetails: BasicUser
     GetUserProfile(limit: Int, offset: Int): UserProfile
-    GetPost(limit: Int, offset: Int): [Post]
+    GetPost(limit: Int, offset: Int): GetPostResponse
     GetUserProfileById(id: ID!, limit: Int, offset: Int): UserProfile
   }
 
@@ -164,13 +169,16 @@ export const resolvers = {
           .select("id, profile, username, followers, following")
           .eq("id", context.id)
           .single();
-
         if (error) {
           console.error(
             `GetUserProfile - Failed to get user data: ${error.message}`
           );
           return [];
         }
+        const { count } = await supabase
+          .from("post")
+          .select("id", { count: "exact" })
+          .eq("createdBy", context.id);
 
         const userData = {
           id: data.id,
@@ -179,7 +187,6 @@ export const resolvers = {
           followers: data.followers,
           following: data.following,
         };
-
         const { data: postData, error: postError } = await supabase
           .from("post")
           .select(
@@ -255,6 +262,7 @@ export const resolvers = {
 
         return {
           user: userData,
+          postLength: count,
           postData: enrichedPosts,
         };
       } catch (err) {
@@ -301,7 +309,10 @@ export const resolvers = {
             followers: data.followers,
             following: data.following,
           };
-
+          const { count } = await supabase
+            .from("post")
+            .select("id", { count: "exact" })
+            .eq("createdBy", id);
           const { data: postData, error: postError } = await supabase
             .from("post")
             .select(
@@ -382,6 +393,7 @@ export const resolvers = {
             return {
               user: userData,
               postData: enrichedPosts,
+              postLength: count,
               isFollowedByLoggedUser: isFollowedByLoggedUser,
             };
           }
@@ -444,14 +456,17 @@ export const resolvers = {
           .in("createdBy", followingIds)
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
-
+          
+          const { count } = await supabase
+          .from("post")
+          .select("id", { count: "exact" })
+          .in("createdBy", followingIds);
         if (postError) {
           console.error("GetPost - Failed to fetch posts:", postError.message);
           return { Error: postError.message };
         }
 
         if (postData) {
-          console.log("POST DATA", postData);
           const enrichedPosts = [];
           for (const post of postData) {
             const { data: creatorData, error: creatorError } = await supabase
@@ -507,10 +522,11 @@ export const resolvers = {
             enrichedPosts.push({
               ...post,
               postedBy,
+              postLength: count,
               tagedUsers: tagedUserDetails,
             });
           }
-          return enrichedPosts;
+          return {Post:enrichedPosts, postLength: count};
         }
       } catch (err) {
         console.error("GetPost - Error occurred:", err);
@@ -539,6 +555,9 @@ export const resolvers = {
           .order("created_at", { ascending: false })
           .range(offset, offset + limit - 1);
 
+        const { count } = await supabase
+          .from("post")
+          .select("id", { count: "exact" });
         if (postError) {
           console.error(
             "GetAllPost - Failed to fetch posts:",
@@ -606,7 +625,7 @@ export const resolvers = {
               tagedUsers: tagedUserDetails,
             });
           }
-          return enrichedPosts;
+          return { Post: enrichedPosts, postLength: count };
         }
       } catch (error) {
         console.error("GetAllPost - Error occurred:", error);

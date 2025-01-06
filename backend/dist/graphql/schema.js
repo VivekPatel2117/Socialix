@@ -48,6 +48,7 @@ exports.typeDefs = (0, graphql_tag_1.gql) `
     user: User
     isFollowedByLoggedUser: Boolean
     postData: [Post]
+    postLength: Int
   }
 
   type BasicUser {
@@ -88,6 +89,10 @@ exports.typeDefs = (0, graphql_tag_1.gql) `
     category: String
     postTitle: String
   }
+  type GetPostResponse {
+    postLength: Int
+    Post: [Post]
+  }
   type OTP_Response {
     message: String
     isSent: Boolean
@@ -100,10 +105,10 @@ exports.typeDefs = (0, graphql_tag_1.gql) `
     email: String
   }
   type Query {
-    GetAllPost(limit: Int, offset: Int): [Post]
+    GetAllPost(limit: Int, offset: Int): GetPostResponse
     GetBasicUserDetails: BasicUser
     GetUserProfile(limit: Int, offset: Int): UserProfile
-    GetPost(limit: Int, offset: Int): [Post]
+    GetPost(limit: Int, offset: Int): GetPostResponse
     GetUserProfileById(id: ID!, limit: Int, offset: Int): UserProfile
   }
 
@@ -171,6 +176,10 @@ exports.resolvers = {
                     console.error(`GetUserProfile - Failed to get user data: ${error.message}`);
                     return [];
                 }
+                const { count } = yield supabaseClient_1.supabase
+                    .from("post")
+                    .select("id", { count: "exact" })
+                    .eq("createdBy", context.id);
                 const userData = {
                     id: data.id,
                     profile: data.profile,
@@ -225,6 +234,7 @@ exports.resolvers = {
                 }
                 return {
                     user: userData,
+                    postLength: count,
                     postData: enrichedPosts,
                 };
             }
@@ -258,6 +268,10 @@ exports.resolvers = {
                         followers: data.followers,
                         following: data.following,
                     };
+                    const { count } = yield supabaseClient_1.supabase
+                        .from("post")
+                        .select("id", { count: "exact" })
+                        .eq("createdBy", id);
                     const { data: postData, error: postError } = yield supabaseClient_1.supabase
                         .from("post")
                         .select("id, postImage, caption, tagedUserId, createdBy, created_at, category, postTitle")
@@ -307,6 +321,7 @@ exports.resolvers = {
                         return {
                             user: userData,
                             postData: enrichedPosts,
+                            postLength: count,
                             isFollowedByLoggedUser: isFollowedByLoggedUser,
                         };
                     }
@@ -350,12 +365,15 @@ exports.resolvers = {
                     .in("createdBy", followingIds)
                     .order("created_at", { ascending: false })
                     .range(offset, offset + limit - 1);
+                const { count } = yield supabaseClient_1.supabase
+                    .from("post")
+                    .select("id", { count: "exact" })
+                    .in("createdBy", followingIds);
                 if (postError) {
                     console.error("GetPost - Failed to fetch posts:", postError.message);
                     return { Error: postError.message };
                 }
                 if (postData) {
-                    console.log("POST DATA", postData);
                     const enrichedPosts = [];
                     for (const post of postData) {
                         const { data: creatorData, error: creatorError } = yield supabaseClient_1.supabase
@@ -389,9 +407,9 @@ exports.resolvers = {
                             tagedUserId: user.id,
                             tagedUserName: user.username,
                         }));
-                        enrichedPosts.push(Object.assign(Object.assign({}, post), { postedBy, tagedUsers: tagedUserDetails }));
+                        enrichedPosts.push(Object.assign(Object.assign({}, post), { postedBy, postLength: count, tagedUsers: tagedUserDetails }));
                     }
-                    return enrichedPosts;
+                    return { Post: enrichedPosts, postLength: count };
                 }
             }
             catch (err) {
@@ -409,6 +427,9 @@ exports.resolvers = {
                     .select("id, postImage, caption, tagedUserId, createdBy, created_at, category, postTitle")
                     .order("created_at", { ascending: false })
                     .range(offset, offset + limit - 1);
+                const { count } = yield supabaseClient_1.supabase
+                    .from("post")
+                    .select("id", { count: "exact" });
                 if (postError) {
                     console.error("GetAllPost - Failed to fetch posts:", postError.message);
                     return { Error: postError.message };
@@ -449,7 +470,7 @@ exports.resolvers = {
                         }));
                         enrichedPosts.push(Object.assign(Object.assign({}, post), { postedBy, tagedUsers: tagedUserDetails }));
                     }
-                    return enrichedPosts;
+                    return { Post: enrichedPosts, postLength: count };
                 }
             }
             catch (error) {

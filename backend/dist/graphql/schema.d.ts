@@ -20,6 +20,7 @@ export declare const resolvers: {
                 followers: any;
                 following: any;
             };
+            postLength: number | null;
             postData: {
                 postedBy: {
                     id: any;
@@ -43,6 +44,7 @@ export declare const resolvers: {
         } | {
             err: unknown;
             user?: undefined;
+            postLength?: undefined;
             postData?: undefined;
         }>;
         GetUserProfileById: (_: any, { id, limit, offset, }: {
@@ -53,6 +55,7 @@ export declare const resolvers: {
             error: string;
             user?: undefined;
             postData?: undefined;
+            postLength?: undefined;
             isFollowedByLoggedUser?: undefined;
         } | {
             user: {
@@ -81,12 +84,14 @@ export declare const resolvers: {
                 category: any;
                 postTitle: any;
             }[];
+            postLength: number | null;
             isFollowedByLoggedUser: boolean;
             error?: undefined;
         } | {
             error: import("@supabase/postgrest-js").PostgrestError;
             user?: undefined;
             postData?: undefined;
+            postLength?: undefined;
             isFollowedByLoggedUser?: undefined;
         } | undefined>;
         GetPost: (_: any, { id, limit, offset, }: {
@@ -96,53 +101,84 @@ export declare const resolvers: {
         }, context: any) => Promise<{
             Error: string;
             postData?: undefined;
+            Post?: undefined;
+            postLength?: undefined;
         } | {
             postData: never[];
             Error?: undefined;
+            Post?: undefined;
+            postLength?: undefined;
         } | {
-            postedBy: {
+            Post: ({
+                postedBy: {
+                    id: any;
+                    username: any;
+                    profile: any;
+                };
+                tagedUsers: never[];
                 id: any;
-                username: any;
-                profile: any;
-            };
-            tagedUsers: {
+                postImage: any;
+                caption: any;
                 tagedUserId: any;
-                tagedUserName: any;
-            }[];
-            id: any;
-            postImage: any;
-            caption: any;
-            tagedUserId: any;
-            createdBy: any;
-            created_at: any;
-            category: any;
-            postTitle: any;
-        }[] | undefined>;
+                createdBy: any;
+                created_at: any;
+                category: any;
+                postTitle: any;
+            } | {
+                postedBy: {
+                    id: any;
+                    username: any;
+                    profile: any;
+                };
+                postLength: number | null;
+                tagedUsers: {
+                    tagedUserId: any;
+                    tagedUserName: any;
+                }[];
+                id: any;
+                postImage: any;
+                caption: any;
+                tagedUserId: any;
+                createdBy: any;
+                created_at: any;
+                category: any;
+                postTitle: any;
+            })[];
+            postLength: number | null;
+            Error?: undefined;
+            postData?: undefined;
+        } | undefined>;
         GetAllPost: (_: any, { id, limit, offset, }: {
             id: string;
             limit: number;
             offset: number;
         }, context: any) => Promise<{
             Error: string;
+            Post?: undefined;
+            postLength?: undefined;
         } | {
-            postedBy: {
+            Post: {
+                postedBy: {
+                    id: any;
+                    username: any;
+                    profile: any;
+                };
+                tagedUsers: {
+                    tagedUserId: any;
+                    tagedUserName: any;
+                }[];
                 id: any;
-                username: any;
-                profile: any;
-            };
-            tagedUsers: {
+                postImage: any;
+                caption: any;
                 tagedUserId: any;
-                tagedUserName: any;
+                createdBy: any;
+                created_at: any;
+                category: any;
+                postTitle: any;
             }[];
-            id: any;
-            postImage: any;
-            caption: any;
-            tagedUserId: any;
-            createdBy: any;
-            created_at: any;
-            category: any;
-            postTitle: any;
-        }[] | undefined>;
+            postLength: number | null;
+            Error?: undefined;
+        } | undefined>;
     };
     Mutation: {
         getProfileUpdateData: (_: any, __: any, context: any) => Promise<{
