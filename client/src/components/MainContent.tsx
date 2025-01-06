@@ -131,7 +131,7 @@ const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMo
             image={post.postImage || fallbackImage}
             sx={{
               height: 'auto',
-              maxHeight: '200px',
+              maxHeight: '50vh',
               objectFit: 'contain',
             }}
           />

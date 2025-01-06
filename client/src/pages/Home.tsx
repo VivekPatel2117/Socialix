@@ -90,7 +90,7 @@ const Home: React.FC = () => {
     );
   }
 
-  if (data) {
+  if (posts && posts.length > 0) {
     return (
       <div className="grid w-full justify-center">
         <Container
