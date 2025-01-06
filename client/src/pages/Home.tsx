@@ -80,7 +80,7 @@ const Home: React.FC = () => {
   }, [data]);
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   if (loading) {
     return (

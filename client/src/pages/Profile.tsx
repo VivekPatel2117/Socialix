@@ -151,6 +151,10 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const limit = 10;
+  const [fetchPosts, { loading, error, data }] = useLazyQuery<ProfileData>(
+    id ? USER_PROFILE_BY_ID : GET_USER_PROFILE,
+    { ...(id && { variables: { id, limit, offset } }) }
+  );
   const [followUser, { data: FollowData }] = useMutation(FOLLOW_USER, {
     onCompleted: () => fetchPosts(),
   });
@@ -159,10 +163,6 @@ const Profile: React.FC = () => {
     {
       onCompleted: () => fetchPosts(),
     }
-  );
-  const [fetchPosts, { loading, error, data }] = useLazyQuery<ProfileData>(
-    id ? USER_PROFILE_BY_ID : GET_USER_PROFILE,
-    { ...(id && { variables: { id, limit, offset } }) }
   );
   const handleFollow = () => {
     followUser({ variables: { userId: id } });
@@ -191,7 +191,7 @@ const Profile: React.FC = () => {
   }, [FollowData]);
   useEffect(() => {
     if (UnFollowData) {
-      setIsFollowed(!UnFollowData.UnFollowUser.isFollowed);
+      setIsFollowed(UnFollowData.UnFollowUser.isFollowed);
     }
   }, [UnFollowData]);
   //Pagination logic

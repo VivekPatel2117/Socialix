@@ -262,7 +262,7 @@ const CreatePost: React.FC = () => {
               <button
                 type="button"
                 onClick={handleTagPeople}
-                className="text-blue-600 border-cyan-700 font-medium px-4 py-2 border rounded-md hover:bg-cyan-100 transition"
+                className="text-white bg-black font-medium px-4 py-2 border rounded-md hover:bg-gray-100 transition"
               >
                 Tag / Mention
               </button>
@@ -282,10 +282,9 @@ const CreatePost: React.FC = () => {
                 px-4 py-2 
                 text-white 
                 font-medium 
-                bg-blue-600 
+                bg-black
                 rounded-md 
                 shadow-md 
-                hover:bg-blue-700 
                 hover:shadow-lg 
                 transition 
                 duration-300 
