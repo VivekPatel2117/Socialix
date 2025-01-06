@@ -103,7 +103,7 @@ const Explore: React.FC = () => {
     return <Error />;
   }
 
-  if (loading && offset < limit) {
+  if (loading) {
     return (
       <div className="grid justify-center items-center">
         <SkeletonLoader />

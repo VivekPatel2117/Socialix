@@ -7,33 +7,8 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material/styles';
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
-const fallbackImage = 'https://via.placeholder.com/800x450?text=No+Image+Available';
-interface PostListProps {
-  posts: any[];
-  loading: boolean;
-  setOffset: React.Dispatch<React.SetStateAction<number>>;
-  hasMore: boolean;
-}
-const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMore }) => {
-  const [isMobile, setMobile] = useState<boolean>(false);
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 1024) {
-        setMobile(true);
-      } else {
-        setMobile(false);
-      }
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
   const StyledCard = styled(Card)(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
@@ -96,7 +71,32 @@ const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMo
       </Box>
     );
   }
-  const observerRef = useRef<HTMLDivElement | null>(null);
+
+const fallbackImage = 'https://via.placeholder.com/800x450?text=No+Image+Available';
+interface PostListProps {
+  posts: any[];
+  loading: boolean;
+  setOffset: React.Dispatch<React.SetStateAction<number>>;
+  hasMore: boolean;
+}
+const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMore }) => {
+  const [isMobile, setMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 1024) {
+        setMobile(true);
+      } else {
+        setMobile(false);
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleScroll = () => {
     const div = document.getElementById("scroll");
@@ -121,9 +121,8 @@ const MainContent: React.FC<PostListProps> = ({ posts, loading, setOffset, hasMo
   return (
     <Box id="scroll" sx={{ display: 'grid',width:isMobile ? '90vw':'60vw', gap: 3, height:"70vh",overflowY:"scroll" }}>
       {posts.map((post, index) => {
-        const isLastPost = index === posts.length - 2;
       return (
-        <div  ref={isLastPost ? observerRef : null} key={post.id || index}>
+        <div key={post.id || index}>
         <StyledCard key={post.id || index} variant="outlined">
           {post.postImage && (
           <CardMedia

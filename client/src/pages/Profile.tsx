@@ -50,7 +50,7 @@ const USER_PROFILE_BY_ID = gql`
         followers
         following
       }
-        postLength
+      postLength
       isFollowedByLoggedUser
       postData {
         id
@@ -141,10 +141,16 @@ interface ProfileData {
 }
 const Profile: React.FC = () => {
   const [offset, setOffset] = useState(0);
-  const navigate = useNavigate();
-  const limit = 10;
   const [isDyanmicProfile, setIsDyanmicProfile] = useState<Boolean>();
+  const [hasMore, setHasMore] = useState(false);
+  const [isFollowed, setIsFollowed] = useState(false);
+  const [profileData, setProfileData] = useState<
+    ProfileData["GetUserProfile"] | ProfileData["GetUserProfileById"] | null
+  >(null);
+
+  const navigate = useNavigate();
   const { id } = useParams();
+  const limit = 10;
   const [followUser, { data: FollowData }] = useMutation(FOLLOW_USER, {
     onCompleted: () => fetchPosts(),
   });
@@ -154,8 +160,6 @@ const Profile: React.FC = () => {
       onCompleted: () => fetchPosts(),
     }
   );
-  const [hasMore, setHasMore] = useState(false);
-  const [isFollowed, setIsFollowed] = useState(false);
   const [fetchPosts, { loading, error, data }] = useLazyQuery<ProfileData>(
     id ? USER_PROFILE_BY_ID : GET_USER_PROFILE,
     { ...(id && { variables: { id, limit, offset } }) }
@@ -166,10 +170,12 @@ const Profile: React.FC = () => {
   const handleUnfollow = () => {
     UnfollowUser({ variables: { userId: id } });
   };
-  const [profileData, setProfileData] = useState<
-    ProfileData["GetUserProfile"] | ProfileData["GetUserProfileById"] | null
-  >(null);
-
+  const displayFollowers = (followers: string) => {
+    const num = followers
+      .split(",")
+      .filter((id: string) => id.trim() !== "").length;
+    return num;
+  };
   useEffect(() => {
     if (id && id !== localStorage.getItem("userId")) {
       setIsDyanmicProfile(true);
@@ -178,13 +184,6 @@ const Profile: React.FC = () => {
       setIsDyanmicProfile(false);
     }
   }, [id]);
-
-  const displayFollowers = (followers: string) => {
-    const num = followers
-      .split(",")
-      .filter((id: string) => id.trim() !== "").length;
-    return num;
-  };
   useEffect(() => {
     if (FollowData) {
       setIsFollowed(FollowData.FollowUser.isFollowed);
@@ -195,12 +194,9 @@ const Profile: React.FC = () => {
       setIsFollowed(!UnFollowData.UnFollowUser.isFollowed);
     }
   }, [UnFollowData]);
+  //Pagination logic
   useEffect(() => {
-    if (
-      hasMore &&
-      profileData?.postLength &&
-      offset < profileData.postLength
-    ) {
+    if (hasMore && profileData?.postLength && offset < profileData.postLength) {
       fetchPosts({ variables: { id, limit, offset } });
     }
   }, [offset, fetchPosts]);
@@ -211,19 +207,27 @@ const Profile: React.FC = () => {
       }
       setProfileData((prev) => {
         if (data.GetUserProfile) {
-          setHasMore(data.GetUserProfile.postLength > offset ? true : false)
+          setHasMore(data.GetUserProfile.postLength > offset ? true : false);
           return {
             ...prev,
             ...data.GetUserProfile, // Merge the user profile details
-            postData: [...((prev && prev.postData) || []), ...(data.GetUserProfile.postData || [])], // Append posts
+            postData: [
+              ...((prev && prev.postData) || []),
+              ...(data.GetUserProfile.postData || []),
+            ], // Append posts
           };
         }
         if (data.GetUserProfileById) {
-          setHasMore(data?.GetUserProfileById.postLength > offset ? true : false)
+          setHasMore(
+            data?.GetUserProfileById.postLength > offset ? true : false
+          );
           return {
             ...prev,
             ...data.GetUserProfileById, // Merge the user profile details
-            postData: [...((prev?.postData) ?? []), ...(data.GetUserProfileById.postData || [])], // Append posts
+            postData: [
+              ...(prev?.postData ?? []),
+              ...(data.GetUserProfileById.postData || []),
+            ], // Append posts
           };
         }
         return prev;
@@ -305,7 +309,7 @@ const Profile: React.FC = () => {
         </Box>
       </Box>
     );
-    
+
   if (error) {
     toast.error("Error fetching user details");
     return <Error />;
@@ -358,9 +362,7 @@ const Profile: React.FC = () => {
               <div className="flex gap-6 mt-2">
                 <div>
                   <span className="text-lg font-semibold">
-                    {profileData.postData
-                      ? profileData.postLength
-                      : 0}
+                    {profileData.postData ? profileData.postLength : 0}
                   </span>{" "}
                   Posts
                 </div>
