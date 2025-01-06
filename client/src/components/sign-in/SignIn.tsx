@@ -241,7 +241,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             </Link>
           </Box>
           <Divider>or</Divider>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ display: "flex",justifyContent:"center", flexDirection: "column", gap: 2 }}>
              <GoogleLogin
             onSuccess={credentialResponse => {
              continueWithGoogle(credentialResponse)
