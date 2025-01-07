@@ -59,8 +59,8 @@ interface PostData {
 }
 
 const Explore: React.FC = () => {
-  const [offset, setOffset] = useState(0);
   const limit = 10;
+  const [offset, setOffset] = useState(0);
   const [posts, setPosts] = useState<PostData | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [fetchPosts, { loading, error, data }] = useLazyQuery<PostData>(

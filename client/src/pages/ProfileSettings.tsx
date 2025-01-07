@@ -38,6 +38,10 @@ interface PROFILE {
 const ProfileSettings = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [fileData, setFileData] = useState<any>();
+  const [profileData, setProfileData] = useState<PROFILE>();
+  const [updateEmail, setUpdateEmail] = useState("");
+  const [updateUsername, setUpdateUsername] = useState("");
+  const [updateProfile, setUpdateProfile] = useState("");
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     setFileData(file);
@@ -55,10 +59,7 @@ const ProfileSettings = () => {
         window.location.reload();
       },
     });
-  const [profileData, setProfileData] = useState<PROFILE>();
-  const [updateEmail, setUpdateEmail] = useState("");
-  const [updateUsername, setUpdateUsername] = useState("");
-  const [updateProfile, setUpdateProfile] = useState("");
+ 
   const handleUpdate = async () => {
     if (fileData) {
       const filePath = Date.now() + fileData.name;
@@ -121,7 +122,6 @@ const ProfileSettings = () => {
     toast.error("Error occured while getting data");
     return (<Error/>);
   }
-
   return (
     <>
       {loading && !profileData ? (

@@ -140,6 +140,9 @@ interface ProfileData {
   };
 }
 const Profile: React.FC = () => {
+  const { id } = useParams();
+  const limit = 10;
+  const navigate = useNavigate();
   const [offset, setOffset] = useState(0);
   const [isDyanmicProfile, setIsDyanmicProfile] = useState<Boolean>();
   const [hasMore, setHasMore] = useState(false);
@@ -148,9 +151,6 @@ const Profile: React.FC = () => {
     ProfileData["GetUserProfile"] | ProfileData["GetUserProfileById"] | null
   >(null);
 
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const limit = 10;
   const [fetchPosts, { loading, error, data }] = useLazyQuery<ProfileData>(
     id ? USER_PROFILE_BY_ID : GET_USER_PROFILE,
     { ...(id && { variables: { id, limit, offset } }) }

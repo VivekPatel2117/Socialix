@@ -42,7 +42,8 @@ interface BasicUser {
 }
 
 interface PostData {
-   GetPost:{ postLength: number;
+  GetPost: {
+    postLength: number;
     Post: Array<{
       id: number;
       postImage: string;
@@ -52,20 +53,21 @@ interface PostData {
       category: string;
       postedBy: BasicUser;
       tagedUsers: TagedUsers[];
-    }>;}
+    }>;
+  }
 }
 const Home: React.FC = () => {
-  const [offset, setOffset] = useState(0);
   const limit = 10;
+  const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [postLength, setPostLength] = useState(0);
+  const [posts, setPosts] = useState<any[]>([]);
   const [fetchPosts, { loading, data }] = useLazyQuery<PostData>(
     GET_POST_QUERY,
     {
       variables: { limit, offset },
     }
   );
-  const [postLength, setPostLength] = useState(0);
-  const [posts, setPosts] = useState<any[]>([]);
   useEffect(() => {
     if (hasMore && postLength && offset < postLength) {
       fetchPosts({ variables: { limit, offset } });
@@ -108,7 +110,7 @@ const Home: React.FC = () => {
           )}
         </Container>
       </div>
-    );  
+    );
   }
 
   // Fallback in case nothing is returned
